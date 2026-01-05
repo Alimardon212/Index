@@ -17,31 +17,43 @@ const log = (t) => {
   document.getElementById("log").textContent += t + "\n";
 };
 
+// Telegram WebApp tayyor
 const tg = Telegram.WebApp;
 tg.ready();
 
 log("✅ Telegram WebApp JS yuklandi");
 log("🌐 Version: " + tg.version);
 
-const user = tg.initDataUnsafe?.user;
+// Init data va user
+const initData = tg.initData;               // Hamma initData
+const initDataUnsafe = tg.initDataUnsafe;   // User va chat haqida ma'lumotlar
+const user = initDataUnsafe?.user;
 
+// Query_id olish (agar mavjud bo‘lsa)
+const query_id = initDataUnsafe?.query_id || null;
+
+// Botga yuboriladigan to‘liq data
 const dataToSend = {
-  number: 1,
-  platform: tg.platform,
-  version: tg.version,
+  query_id: query_id,
+  all_init_data: initData,           // Hamma initData
   user_from_webapp: user ? {
     id: user.id,
-    first_name: user.first_name || ""
+    first_name: user.first_name || "",
+    last_name: user.last_name || "",
+    username: user.username || ""
   } : null,
-  time: Date.now()
+  platform: tg.platform,
+  webapp_version: tg.version,
+  timestamp: Date.now()
 };
 
 log("📦 Tayyor data:");
 log(JSON.stringify(dataToSend, null, 2));
 
+// Botga yuborish funksiyasi
 function send() {
-  tg.sendData(JSON.stringify(dataToSend));
-  tg.close();
+  tg.sendData(JSON.stringify(dataToSend)); // JSON shaklida yuboradi
+  tg.close();                               // Mini-appni yopadi
 }
 </script>
 
