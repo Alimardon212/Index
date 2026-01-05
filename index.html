@@ -1,137 +1,51 @@
-<!-- index.html fayl -->
 <!DOCTYPE html>
-<html>
+<html lang="uz">
 <head>
-    <title>Telegram MiniApp Test</title>
+    <meta charset="UTF-8">
+    <title>Mini App Test</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
     <style>
-        body { font-family: Arial; padding: 20px; text-align: center; }
-        button { padding: 15px; margin: 10px; font-size: 16px; }
-        .success { color: green; }
-        .error { color: red; }
+        body {
+            font-family: sans-serif;
+            background: #0f172a;
+            color: white;
+            display: flex;
+            height: 100vh;
+            justify-content: center;
+            align-items: center;
+        }
+        button {
+            font-size: 24px;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 12px;
+            background: #22c55e;
+            color: black;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
-    <h1>🧪 Telegram MiniApp Test</h1>
-    
-    <div id="info">
-        <p>Telegram WebApp yuklanmoqda...</p>
-    </div>
-    
-    <button onclick="sendTestData()" style="background: #28a745; color: white;">
-        📤 Botga Test Ma'lumot Yuborish
-    </button>
-    
-    <button onclick="showTelegramInfo()" style="background: #007bff; color: white;">
-        ℹ️ Telegram Ma'lumotlari
-    </button>
-    
-    <div id="result" style="margin-top: 20px; padding: 15px; background: #f8f9fa;"></div>
 
-    <script>
-        // Telegram borligini tekshirish
-        function checkTelegram() {
-            const infoDiv = document.getElementById('info');
-            
-            if (typeof Telegram === 'undefined') {
-                infoDiv.innerHTML = '<p class="error">❌ Telegram WebApp JS yuklanmadi</p>' +
-                                   '<p>Bot orqali ochilganligiga ishonch hosil qiling</p>';
-                return false;
-            }
-            
-            const tg = Telegram.WebApp;
-            tg.expand();
-            
-            let userInfo = '';
-            if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-                const user = tg.initDataUnsafe.user;
-                userInfo = `👤 User ID: ${user.id}<br>Ism: ${user.first_name || 'Noma\'lum'}`;
-            }
-            
-            infoDiv.innerHTML = 
-                `<p class="success">✅ Telegram WebApp yuklandi!</p>
-                 <p>${userInfo || '⚠️ User ma\'lumotlari yo\'q'}</p>
-                 <p>🌐 Version: ${tg.version}</p>`;
-            
-            return true;
-        }
-        
-        // Botga ma'lumot yuborish
-        function sendTestData() {
-            if (!checkTelegram()) {
-                alert("Telegram WebApp yoq. Bot orqali oching!");
-                return;
-            }
-            
-            const tg = Telegram.WebApp;
-            const userId = tg.initDataUnsafe?.user?.id || 'unknown';
-            
-            const testData = {
-                test: true,
-                action: "mini_app_test",
-                user_id: userId,
-                timestamp: new Date().toISOString(),
-                random_number: Math.random()
-            };
-            
-            try {
-                // Telegram WebApp orqali yuborish
-                tg.sendData(JSON.stringify(testData));
-                
-                // POST request ham yuborish (kafolat uchun)
-                fetch('https://api.telegram.org/botDUMMY/sendMessage', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
-                        chat_id: userId,
-                        text: `Test ma'lumot: ${JSON.stringify(testData, null, 2)}`
-                    })
-                }).catch(e => console.log("Fetch xatosi:", e));
-                
-                document.getElementById('result').innerHTML = 
-                    `<div style="background: #d4edda; padding: 15px; border-radius: 5px;">
-                        <h3>✅ Ma'lumotlar yuborildi!</h3>
-                        <pre>${JSON.stringify(testData, null, 2)}</pre>
-                        <p>Bot javobini kuting...</p>
-                    </div>`;
-                    
-                alert("✅ Ma'lumotlar botga yuborildi!\n\nBotdan javob kelishi kerak.");
-                
-            } catch (error) {
-                document.getElementById('result').innerHTML = 
-                    `<div style="background: #f8d7da; padding: 15px; border-radius: 5px;">
-                        <h3>❌ Xatolik!</h3>
-                        <p>${error.message}</p>
-                    </div>`;
-                alert("Xatolik: " + error.message);
-            }
-        }
-        
-        // Telegram ma'lumotlarini ko'rsatish
-        function showTelegramInfo() {
-            if (!checkTelegram()) return;
-            
-            const tg = Telegram.WebApp;
-            let info = '<h3>📊 Telegram WebApp Ma\'lumotlari:</h3>';
-            
-            info += `<p><strong>Version:</strong> ${tg.version}</p>`;
-            info += `<p><strong>Platform:</strong> ${tg.platform}</p>`;
-            info += `<p><strong>initData bor:</strong> ${!!tg.initData}</p>`;
-            
-            if (tg.initDataUnsafe) {
-                info += '<h4>initDataUnsafe:</h4>';
-                info += `<pre>${JSON.stringify(tg.initDataUnsafe, null, 2)}</pre>`;
-            }
-            
-            document.getElementById('result').innerHTML = 
-                `<div style="background: #e2e3e5; padding: 15px; border-radius: 5px; text-align: left;">
-                    ${info}
-                </div>`;
-        }
-        
-        // Sahifa yuklanganda
-        window.onload = function() {
-            setTimeout(checkTelegram, 1000);
+<button onclick="sendData()">1 yuborish</button>
+
+<script>
+    const tg = window.Telegram.WebApp;
+    tg.ready();
+
+    function sendData() {
+        const payload = {
+            number: 1,
+            user_id: tg.initDataUnsafe?.user?.id
         };
-    </script>
+
+        tg.sendData(JSON.stringify(payload));
+        tg.close();
+    }
+</script>
+
 </body>
 </html>
