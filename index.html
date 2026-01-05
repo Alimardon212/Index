@@ -1,24 +1,47 @@
 <!DOCTYPE html>
-<html>
+<html lang="uz">
 <head>
-<meta charset="UTF-8">
-<title>Mini App Test</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <meta charset="UTF-8">
+  <title>Mini App</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
 
-<h3>Mini App GitHub Pages Test</h3>
+<h3>Mini App</h3>
+<button onclick="send()">Botga yuborish</button>
 
-<button onclick="send()">1 yubor</button>
+<pre id="log"></pre>
 
 <script>
+const log = (t) => {
+  document.getElementById("log").textContent += t + "\n";
+};
+
 const tg = Telegram.WebApp;
-tg.expand();
+tg.ready();
+
+log("✅ Telegram WebApp JS yuklandi");
+log("🌐 Version: " + tg.version);
+
+const user = tg.initDataUnsafe?.user;
+
+const dataToSend = {
+  number: 1,
+  platform: tg.platform,
+  version: tg.version,
+  user_from_webapp: user ? {
+    id: user.id,
+    first_name: user.first_name || ""
+  } : null,
+  time: Date.now()
+};
+
+log("📦 Tayyor data:");
+log(JSON.stringify(dataToSend, null, 2));
 
 function send() {
-  tg.sendData("1");
-  tg.showAlert("1 yuborildi");
+  tg.sendData(JSON.stringify(dataToSend));
+  tg.close();
 }
 </script>
 
