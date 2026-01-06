@@ -8,34 +8,24 @@
 <body>
 
 <h3>Mini App</h3>
-<button onclick="send()">Botga yuborish</button>
+<button id="sendBtn">Botga yuborish</button>
 <pre id="log"></pre>
+
 <script>
 const tg = Telegram.WebApp;
 tg.ready();
 
-// ENG MUHIM QATOR
-const dataString = tg.initData || "";
-
-console.log("InitData:", dataString);
-
-function send() {
-  tg.sendData(dataString); // TO‘LIQ SIGNED STRING
-  tg.close();
-}
-</script>
-
-<script>
 const log = (t) => {
   document.getElementById("log").textContent += t + "\n";
 };
 
-const tg = Telegram.WebApp;
-tg.ready();
+// 1️⃣ ENG ISHONCHLI — SIGNED initData
+const initData = tg.initData || "";
 
+// 2️⃣ Qo‘shimcha (agar user ko‘rinsin desa)
 const u = tg.initDataUnsafe?.user || {};
 
-const dataString = [
+const fallbackString = [
   u.id || "",
   u.first_name || "",
   u.last_name || "",
@@ -45,15 +35,18 @@ const dataString = [
   Date.now()
 ].join("|");
 
-log("📤 Yuboriladigan STRING:");
-log(dataString);
+// 3️⃣ Qaysi biri yuboriladi?
+// Agar initData bo‘lsa — SHUNI yuboramiz
+const dataToSend = initData.length > 0 ? initData : fallbackString;
 
-function send() {
-  tg.sendData(dataString); // FAQAT STRING
+log("📤 Yuboriladigan STRING:");
+log(dataToSend);
+
+document.getElementById("sendBtn").onclick = () => {
+  tg.sendData(dataToSend);
   tg.close();
-}
+};
 </script>
 
 </body>
 </html>
-
