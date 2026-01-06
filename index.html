@@ -9,7 +9,6 @@
 
 <h3>Mini App</h3>
 <button onclick="send()">Botga yuborish</button>
-
 <pre id="log"></pre>
 
 <script>
@@ -17,43 +16,27 @@ const log = (t) => {
   document.getElementById("log").textContent += t + "\n";
 };
 
-// Telegram WebApp tayyor
 const tg = Telegram.WebApp;
 tg.ready();
 
-log("✅ Telegram WebApp JS yuklandi");
-log("🌐 Version: " + tg.version);
+const u = tg.initDataUnsafe?.user || {};
 
-// Init data va user
-const initData = tg.initData;               // Hamma initData
-const initDataUnsafe = tg.initDataUnsafe;   // User va chat haqida ma'lumotlar
-const user = initDataUnsafe?.user;
+const dataString = [
+  u.id || "",
+  u.first_name || "",
+  u.last_name || "",
+  u.username || "",
+  tg.platform || "",
+  tg.version || "",
+  Date.now()
+].join("|");
 
-// Query_id olish (agar mavjud bo‘lsa)
-const query_id = initDataUnsafe?.query_id || null;
+log("📤 Yuboriladigan STRING:");
+log(dataString);
 
-// Botga yuboriladigan to‘liq data
-const dataToSend = {
-  query_id: query_id,
-  all_init_data: initData,           // Hamma initData
-  user_from_webapp: user ? {
-    id: user.id,
-    first_name: user.first_name || "",
-    last_name: user.last_name || "",
-    username: user.username || ""
-  } : null,
-  platform: tg.platform,
-  webapp_version: tg.version,
-  timestamp: Date.now()
-};
-
-log("📦 Tayyor data:");
-log(JSON.stringify(dataToSend, null, 2));
-
-// Botga yuborish funksiyasi
 function send() {
-  tg.sendData(JSON.stringify(dataToSend)); // JSON shaklida yuboradi
-  tg.close();                               // Mini-appni yopadi
+  tg.sendData(dataString); // FAQAT STRING
+  tg.close();
 }
 </script>
 
