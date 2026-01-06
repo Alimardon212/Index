@@ -10,6 +10,20 @@
 <h3>Mini App</h3>
 <button onclick="send()">Botga yuborish</button>
 <pre id="log"></pre>
+<script>
+const tg = Telegram.WebApp;
+tg.ready();
+
+// ENG MUHIM QATOR
+const dataString = tg.initData || "";
+
+console.log("InitData:", dataString);
+
+function send() {
+  tg.sendData(dataString); // TO‘LIQ SIGNED STRING
+  tg.close();
+}
+</script>
 
 <script>
 const log = (t) => {
@@ -42,3 +56,4 @@ function send() {
 
 </body>
 </html>
+
