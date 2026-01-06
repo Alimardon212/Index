@@ -4,11 +4,24 @@
   <meta charset="UTF-8">
   <title>Mini App</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    button { padding: 10px 20px; margin: 10px 0; font-size: 16px; }
+    pre { background: #f0f0f0; padding: 10px; border-radius: 5px; }
+  </style>
 </head>
 <body>
 
 <h3>Mini App</h3>
-<button id="sendBtn">Botga yuborish</button>
+
+<!-- Form ma’lumot kiritish uchun -->
+<label>Ismingiz:</label>
+<input type="text" id="firstName" placeholder="Ali"><br>
+
+<label>Familiyangiz:</label>
+<input type="text" id="lastName" placeholder="Adhamov"><br>
+
+<button id="saveBtn">Saqlash</button>
 <pre id="log"></pre>
 
 <script>
@@ -19,32 +32,31 @@ const log = (t) => {
   document.getElementById("log").textContent += t + "\n";
 };
 
-// 1️⃣ ENG ISHONCHLI — SIGNED initData
-const initData = tg.initData || "";
+// Foydalanuvchi ma’lumotini localStorage ga saqlash
+document.getElementById("saveBtn").onclick = () => {
+  const data = {
+    first_name: document.getElementById("firstName").value || "",
+    last_name: document.getElementById("lastName").value || "",
+    platform: tg.platform || "",
+    version: tg.version || "",
+    timestamp: Date.now()
+  };
 
-// 2️⃣ Qo‘shimcha (agar user ko‘rinsin desa)
-const u = tg.initDataUnsafe?.user || {};
+  // localStorage ga saqlash
+  localStorage.setItem("miniAppData", JSON.stringify(data));
+  log("✅ Ma’lumot saqlandi!");
+  log(JSON.stringify(data, null, 2));
 
-const fallbackString = [
-  u.id || "",
-  u.first_name || "",
-  u.last_name || "",
-  u.username || "",
-  tg.platform || "",
-  tg.version || "",
-  Date.now()
-].join("|");
+  alert("Ma’lumot saqlandi ✅");
+};
 
-// 3️⃣ Qaysi biri yuboriladi?
-// Agar initData bo‘lsa — SHUNI yuboramiz
-const dataToSend = initData.length > 0 ? initData : fallbackString;
-
-log("📤 Yuboriladigan STRING:");
-log(dataToSend);
-
-document.getElementById("sendBtn").onclick = () => {
-  tg.sendData(dataToSend);
-  tg.close();
+// Mini App ochilganda localStorage dan o‘qib chiqarish
+window.onload = () => {
+  const savedData = localStorage.getItem("miniAppData");
+  if (savedData) {
+    log("💾 Oldingi saqlangan ma’lumot:");
+    log(savedData);
+  }
 };
 </script>
 
