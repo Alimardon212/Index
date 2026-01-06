@@ -13,49 +13,24 @@
 <body>
 
 <h3>Mini App</h3>
-<button id="saveBtn">Init Data’ni saqlash</button>
-<pre id="log"></pre>
-
+<button id="sendBtn">Botga yuborish</button>
 <script>
 const tg = Telegram.WebApp;
 tg.ready();
 
-const log = (t) => {
-  document.getElementById("log").textContent += t + "\n";
-};
-
-// Mini App ochilganda data olish
-const initData = tg.initData || "";
-const unsafeData = tg.initDataUnsafe || {};
-
-// JSON shaklida faylga saqlash funksiyasi
-function saveJSON(data) {
-  const jsonStr = JSON.stringify(data, null, 2);
-  const blob = new Blob([jsonStr], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "mini_app_initdata.json";
-  a.click();
-
-  log("✅ JSON fayl yaratildi va yuklandi");
-  log(jsonStr);
-}
-
-// Saqlash tugmasi
-document.getElementById("saveBtn").onclick = () => {
-  const dataToSave = {
-    initData: initData,
-    initDataUnsafe: unsafeData,
+document.getElementById("sendBtn").onclick = () => {
+  const dataToSend = {
+    initData: tg.initData,
+    initDataUnsafe: tg.initDataUnsafe,
     platform: tg.platform,
     version: tg.version,
     timestamp: Date.now()
   };
 
-  saveJSON(dataToSave);
+  tg.sendData(JSON.stringify(dataToSend)); // JSON string botga yuboriladi
 };
 </script>
 
 </body>
 </html>
+
