@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Test Javoblari</title>
+  <title>Javoblar</title>
   <script defer src="https://cdn.jsdelivr.net/npm/mathlive"></script>
   <style>
     body{margin:0;font-family:Arial,sans-serif;background:#f0f2f5;padding:5px;}
@@ -19,38 +19,30 @@
     .clear-btn{background:#e74c3c;margin-right:4%;}
     .submit-btn{background:#2ecc71;}
     #submitInfo{text-align:center;font-weight:bold;margin-top:15px;display:none;color:#27ae60;font-size:16px;}
-    #resultInfo{margin-top:10px;padding:10px;background:#f8f9fa;border-radius:5px;display:none;}
-    .copy-btn{background:#9b59b6;color:white;border:none;padding:5px 10px;border-radius:3px;cursor:pointer;margin-top:5px;}
   </style>
 </head>
 <body>
 <div class="container">
   <div id="questionsContainer"></div>
-  
   <div style="display:flex;justify-content:space-between;">
     <button class="action-btn clear-btn" onclick="clearAll()">♻️ Tozalash</button>
     <button class="action-btn submit-btn" onclick="submitTest()">📤 Topshirish</button>
   </div>
-  
   <div id="submitInfo">✅ Test topshirildi</div>
-  
-  <div id="resultInfo">
-    <p><strong>Natija ID:</strong> <span id="resultId"></span></p>
-    <p><strong>Vaqt:</strong> <span id="resultTime"></span></p>
-    <button class="copy-btn" onclick="copyResultId()">📋 ID ni nusxalash</button>
-  </div>
 </div>
 
 <script>
   let answers={};
-  const numClosed = 30;
-  const numOpen = 5;
-  let resultId = null;
+
+  // admin botdan oladi:
+  const numClosed = 30; // yopiq savollar soni (botdan olindi)
+  const numOpen = 5;    // ochiq savollar soni (botdan olindi)
 
   function createQuestions(){
     const container=document.getElementById('questionsContainer');
     container.innerHTML='';
 
+    // yopiq savollar
     for(let i=1;i<=numClosed;i++){
       const q=document.createElement('div');
       q.className='question';
@@ -65,6 +57,7 @@
       container.appendChild(q);
     }
 
+    // ochiq savollar
     for(let i=numClosed+1;i<=numClosed+numOpen;i++){
       const q=document.createElement('div');
       q.className='question';
@@ -85,77 +78,7 @@
     saveAnswers();
   }
 
-  function updateOpenAnswer(qNum,val){ 
-    answers[qNum]=val; 
-    saveAnswers(); 
-  }
-
-  function saveAnswers(){ 
-    localStorage.setItem('testAnswers',JSON.stringify(answers)); 
-  }
-
-  async function submitTest(){
-    if(Object.keys(answers).length===0){ 
-      alert("Hech qanday javob tanlanmagan!"); 
-      return; 
-    }
-    
-    try {
-      // 1. Ma'lumotlarni tayyorlash
-      const data = {
-        answers: answers,
-        timestamp: new Date().toISOString(),
-        metadata: {
-          userAgent: navigator.userAgent,
-          platform: navigator.platform,
-          closedQuestions: numClosed,
-          openQuestions: numOpen
-        }
-      };
-      
-      // 2. Unikal ID yaratish
-      resultId = 'result_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-      
-      // 3. Cloudflare KV ga saqlash
-      const response = await fetch('/api/save', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          key: resultId,
-          data: data
-        })
-      });
-      
-      const result = await response.json();
-      
-      if(result.success) {
-        // 4. UI ni yangilash
-        document.getElementById('questionsContainer').style.display='none';
-        document.querySelectorAll('.action-btn').forEach(b=>b.style.display='none');
-        document.getElementById('submitInfo').style.display='block';
-        
-        // 5. Natijani ko'rsatish
-        document.getElementById('resultId').textContent = resultId;
-        document.getElementById('resultTime').textContent = new Date().toLocaleString('uz-UZ');
-        document.getElementById('resultInfo').style.display = 'block';
-        
-        console.log("✅ Saqlandi! ID:", resultId);
-        console.log("📊 Javoblar:", answers);
-        
-        // 6. LocalStorage dan tozalash
-        localStorage.removeItem('testAnswers');
-        
-      } else {
-        alert("Saqlashda xatolik: " + result.message);
-      }
-      
-    } catch(error) {
-      console.error("Xatolik:", error);
-      alert("Internet aloqasini tekshiring");
-    }
-  }
+  function updateOpenAnswer(qNum,val){ answers[qNum]=val; saveAnswers(); }
 
   function clearAll(){
     answers={};
@@ -165,37 +88,33 @@
     }
     localStorage.removeItem('testAnswers');
     document.getElementById('submitInfo').style.display='none';
-    document.getElementById('resultInfo').style.display='none';
   }
 
-  function copyResultId(){
-    navigator.clipboard.writeText(resultId)
-      .then(() => alert("ID nusxalandi: " + resultId))
-      .catch(err => console.error("Nusxalash xatosi:", err));
+  function submitTest(){
+    if(Object.keys(answers).length===0){ alert("Hech qanday javob tanlanmagan!"); return; }
+    document.getElementById('questionsContainer').style.display='none';
+    document.querySelectorAll('.action-btn').forEach(b=>b.style.display='none');
+    document.getElementById('submitInfo').style.display='block';
+    console.log("Topshirilgan javoblar:",answers);
   }
+
+  function saveAnswers(){ localStorage.setItem('testAnswers',JSON.stringify(answers)); }
 
   function loadAnswers(){
     const saved=localStorage.getItem('testAnswers');
-    if(saved){ 
-      answers=JSON.parse(saved);
-      for(let i=1;i<=numClosed;i++){ 
-        if(answers[i]){
-          document.querySelectorAll(`#questionsContainer .question:nth-child(${i}) .abcd-btn`).forEach(b=>{
-            if(b.textContent===answers[i]) b.classList.add('selected');
-          });
-        }
-      }
-      for(let i=numClosed+1;i<=numClosed+numOpen;i++){ 
-        if(answers[i])
-          document.getElementById('answer-'+i).setValue(answers[i],{format:'text'});
+    if(saved){ answers=JSON.parse(saved);
+      for(let i=1;i<=numClosed;i++){ if(answers[i]){
+        document.querySelectorAll(`#questionsContainer .question:nth-child(${i}) .abcd-btn`).forEach(b=>{
+          if(b.textContent===answers[i]) b.classList.add('selected');
+        });
+      }}
+      for(let i=numClosed+1;i<=numClosed+numOpen;i++){ if(answers[i])
+        document.getElementById('answer-'+i).setValue(answers[i],{format:'text'});
       }
     }
   }
 
-  window.onload=function(){ 
-    createQuestions(); 
-    loadAnswers(); 
-  }
+  window.onload=function(){ createQuestions(); loadAnswers(); }
 </script>
 </body>
 </html>
