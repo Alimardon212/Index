@@ -2,51 +2,59 @@
 <html lang="uz">
 <head>
   <meta charset="UTF-8">
-  <title>Mini App JSON saqlash</title>
+  <title>Mini App</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <style>
-    body { font-family: Arial; padding: 20px; }
-    button { padding: 10px 20px; margin: 10px 0; font-size: 16px; }
-    pre { background: #f0f0f0; padding: 10px; border-radius: 5px; }
-  </style>
 </head>
 <body>
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+<h3>Mini App</h3>
+<button onclick="send()">Saqlash</button>
+
+<pre id="log"></pre>
+
 <script>
-const tg = Telegram.WebApp;
-tg.ready();
+  // Telegram WebApp tayyor
+  const tg = Telegram.WebApp;
+  tg.ready();
 
-async function send() {
-  const initData = tg.initData;
+  // Log uchun
+  const log = (t) => {
+    document.getElementById("log").textContent += t + "\n";
+  };
 
-  if (!initData) {
-    alert("❌ initData yo‘q");
-    return;
-  }
+  log("✅ Telegram WebApp JS yuklandi");
+  log("🌐 Platform: " + tg.platform);
+  log("🌐 Version: " + tg.version);
 
-  const res = await fetch("https://save-mini-app.adhamov20072.workers.dev/", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
+  // 🌟 BU YERGA yoziladi
+  async function send() {
+    const initData = tg.initData || "";
+    const user = tg.initDataUnsafe?.user || {};
+
+    const payload = {
+      user: user,
       initData: initData,
       platform: tg.platform,
       version: tg.version,
       time: Date.now()
-    })
-  });
+    };
 
-  const text = await res.text();
-  alert("✅ Yuborildi: " + text);
+    try {
+      const res = await fetch("https://save-mini-app.adhamov20072.workers.dev/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
 
-  tg.close();
-}
+      const text = await res.text();
+      alert("✅ Ma'lumot saqlandi: " + text);
+    } catch (err) {
+      alert("❌ Xato: " + err.message);
+    }
+
+    tg.close();
+  }
 </script>
-
-<button onclick="send()">Saqlash</button>
 
 </body>
 </html>
-
-
