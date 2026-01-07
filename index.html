@@ -135,13 +135,13 @@
   function submitTest(){
   // Ochiq savollarni olish
   for(let i=numClosed+1;i<=numClosed+numOpen;i++){
-    const mf = document.getElementById('answer-'+i);
-    if(mf){
-      // Telegram WebApp ichida value olish
-      const val = mf.getAttribute('value')?.trim();
-      if(val) answers[i] = val;
-    }
-  }
+  const mf = document.getElementById('answer-'+i);
+  if(mf){
+    // Mathfield qiymatini console orqali tekshirish
+    console.log("Mathfield value:", mf.value, mf.getValue?.('text'));
+   }
+ }
+
 
   if(Object.keys(answers).length===0){
     alert("Hech qanday javob tanlanmagan!");
@@ -166,6 +166,7 @@
 </script>
 </body>
 </html>
+
 
 
 
