@@ -133,24 +133,31 @@
   }
 
   function submitTest(){
-    // Ochiq savollarni submit paytida alohida o'qib olish
-    for(let i=numClosed+1;i<=numClosed+numOpen;i++){
-      const val = document.getElementById('answer-'+i).getValue('text').trim();
-      if(val) answers[i] = val;
+  // Ochiq savollarni alohida o'qish
+  for(let i=numClosed+1;i<=numClosed+numOpen;i++){
+    const mathfield = document.getElementById('answer-'+i);
+    let val = '';
+    if(mathfield) {
+      // Mathfield value ni olish
+      val = mathfield.value || '';
     }
-
-    if(Object.keys(answers).length===0){
-      alert("Hech qanday javob tanlanmagan!");
-      return;
-    }
-
-    sendAnswers(); // KV ga yuboriladi
-
-    document.getElementById('questionsContainer').style.display='none';
-    document.querySelectorAll('.action-btn').forEach(b=>b.style.display='none');
-    document.getElementById('submitInfo').style.display='block';
-    console.log("Topshirilgan javoblar:", answers);
+    val = val.trim();
+    if(val) answers[i] = val; // faqat kiritilgan javoblar saqlanadi
   }
+
+  if(Object.keys(answers).length===0){
+    alert("Hech qanday javob tanlanmagan!");
+    return;
+  }
+
+  sendAnswers(); // KV ga yuboriladi
+
+  document.getElementById('questionsContainer').style.display='none';
+  document.querySelectorAll('.action-btn').forEach(b=>b.style.display='none');
+  document.getElementById('submitInfo').style.display='block';
+  console.log("Topshirilgan javoblar:", answers);
+}
+
 
   window.onload = function(){
     createQuestions(); 
@@ -159,3 +166,4 @@
 </script>
 </body>
 </html>
+
