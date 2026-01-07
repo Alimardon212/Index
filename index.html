@@ -2,53 +2,59 @@
 <html lang="uz">
 <head>
   <meta charset="UTF-8">
-  <title>Javoblar</title>
-
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Javoblari</title>
   <script defer src="https://cdn.jsdelivr.net/npm/mathlive"></script>
-
   <style>
-    body{margin:0;font-family:Arial;background:#f0f2f5;padding:5px;}
+    body{margin:0;font-family:Arial,sans-serif;background:#f0f2f5;padding:5px;}
     .container{max-width:600px;margin:auto;background:white;padding:5px;border-radius:10px;}
-    .question{padding:8px;margin-bottom:4px;display:flex;justify-content:space-between;}
-    .abcd-btn{padding:5px 8px;margin-left:4px;border:1px solid #ccc;border-radius:5px;}
-    .abcd-btn.selected{background:#3498db;color:white;}
-    .action-btn{padding:10px;margin-top:10px;width:48%;border:none;border-radius:5px;color:white;}
+    .question{padding:8px;border-radius:5px;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center;font-size:16px;}
+    .question:nth-child(odd){background:#e8e8e8;}
+    .question:nth-child(even){background:#fff;}
+    .abcd-btn{padding:5px 8px;margin-left:4px;border:1px solid #ccc;border-radius:5px;cursor:pointer;font-weight:bold;font-size:14px;}
+    .abcd-btn.selected{background:#3498db;color:white;border-color:#2980b9;}
+    math-field{width:99%;padding:5px;border:1px solid #ccc;border-radius:5px;margin-top:5px;font-size:16px;}
+    .open-math{font-size:14px;padding:4px;}
+    .action-btn{padding:10px;margin-top:10px;width:48%;border:none;border-radius:5px;color:white;cursor:pointer;font-size:16px;}
+    .clear-btn{background:#e74c3c;margin-right:4%;}
     .submit-btn{background:#2ecc71;}
-    .clear-btn{background:#e74c3c;}
+    #submitInfo{text-align:center;font-weight:bold;margin-top:15px;display:none;color:#27ae60;font-size:16px;}
+    #resultInfo{margin-top:10px;padding:10px;background:#f8f9fa;border-radius:5px;display:none;}
+    .copy-btn{background:#9b59b6;color:white;border:none;padding:5px 10px;border-radius:3px;cursor:pointer;margin-top:5px;}
   </style>
 </head>
-
 <body>
 <div class="container">
   <div id="questionsContainer"></div>
-
+  
   <div style="display:flex;justify-content:space-between;">
     <button class="action-btn clear-btn" onclick="clearAll()">♻️ Tozalash</button>
     <button class="action-btn submit-btn" onclick="submitTest()">📤 Topshirish</button>
   </div>
-
-  <div id="submitInfo" style="display:none;text-align:center;">✅ Test topshirildi</div>
+  
+  <div id="submitInfo">✅ Test topshirildi</div>
+  
+  <div id="resultInfo">
+    <p><strong>Natija ID:</strong> <span id="resultId"></span></p>
+    <p><strong>Vaqt:</strong> <span id="resultTime"></span></p>
+    <button class="copy-btn" onclick="copyResultId()">📋 ID ni nusxalash</button>
+  </div>
 </div>
 
 <script>
-  const tg = window.Telegram.WebApp;
-  tg.expand();
-
-  const userId = tg.initDataUnsafe?.user?.id;
-
-  let answers = {};
+  let answers={};
   const numClosed = 30;
   const numOpen = 5;
+  let resultId = null;
 
   function createQuestions(){
-    const c = document.getElementById("questionsContainer");
-    c.innerHTML = "";
+    const container=document.getElementById('questionsContainer');
+    container.innerHTML='';
 
     for(let i=1;i<=numClosed;i++){
-      const d = document.createElement("div");
-      d.className="question";
-      d.innerHTML=`
+      const q=document.createElement('div');
+      q.className='question';
+      q.innerHTML=`
         <div>${i}.</div>
         <div>
           <button class="abcd-btn" onclick="selectAnswer(${i},'A',this)">A</button>
@@ -56,52 +62,140 @@
           <button class="abcd-btn" onclick="selectAnswer(${i},'C',this)">C</button>
           <button class="abcd-btn" onclick="selectAnswer(${i},'D',this)">D</button>
         </div>`;
-      c.appendChild(d);
+      container.appendChild(q);
     }
 
     for(let i=numClosed+1;i<=numClosed+numOpen;i++){
-      const d=document.createElement("div");
-      d.className="question";
-      d.innerHTML=`<div>${i}.</div>
-        <math-field oninput="answers[${i}] = this.getValue('text')"></math-field>`;
-      c.appendChild(d);
+      const q=document.createElement('div');
+      q.className='question';
+      q.style.flexDirection='column';
+      q.style.alignItems='flex-start';
+      q.style.background = (i%2===1)? '#e8e8e8' : '#fff';
+      q.innerHTML=`<div>${i}.</div>
+        <math-field id="answer-${i}" class="open-math" virtual-keyboard-mode="onfocus"
+        oninput="updateOpenAnswer(${i}, this.getValue('text'))"></math-field>`;
+      container.appendChild(q);
     }
   }
 
-  function selectAnswer(q,a,btn){
-    answers[q]=a;
-    btn.parentElement.querySelectorAll("button").forEach(b=>b.classList.remove("selected"));
-    btn.classList.add("selected");
+  function selectAnswer(qNum,ans,btn){
+    answers[qNum]=ans;
+    btn.parentElement.querySelectorAll('.abcd-btn').forEach(b=>b.classList.remove('selected'));
+    btn.classList.add('selected');
+    saveAnswers();
+  }
+
+  function updateOpenAnswer(qNum,val){ 
+    answers[qNum]=val; 
+    saveAnswers(); 
+  }
+
+  function saveAnswers(){ 
+    localStorage.setItem('testAnswers',JSON.stringify(answers)); 
+  }
+
+  async function submitTest(){
+    if(Object.keys(answers).length===0){ 
+      alert("Hech qanday javob tanlanmagan!"); 
+      return; 
+    }
+    
+    try {
+      // 1. Ma'lumotlarni tayyorlash
+      const data = {
+        answers: answers,
+        timestamp: new Date().toISOString(),
+        metadata: {
+          userAgent: navigator.userAgent,
+          platform: navigator.platform,
+          closedQuestions: numClosed,
+          openQuestions: numOpen
+        }
+      };
+      
+      // 2. Unikal ID yaratish
+      resultId = 'result_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      
+      // 3. Cloudflare KV ga saqlash
+      const response = await fetch('/api/save', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          key: resultId,
+          data: data
+        })
+      });
+      
+      const result = await response.json();
+      
+      if(result.success) {
+        // 4. UI ni yangilash
+        document.getElementById('questionsContainer').style.display='none';
+        document.querySelectorAll('.action-btn').forEach(b=>b.style.display='none');
+        document.getElementById('submitInfo').style.display='block';
+        
+        // 5. Natijani ko'rsatish
+        document.getElementById('resultId').textContent = resultId;
+        document.getElementById('resultTime').textContent = new Date().toLocaleString('uz-UZ');
+        document.getElementById('resultInfo').style.display = 'block';
+        
+        console.log("✅ Saqlandi! ID:", resultId);
+        console.log("📊 Javoblar:", answers);
+        
+        // 6. LocalStorage dan tozalash
+        localStorage.removeItem('testAnswers');
+        
+      } else {
+        alert("Saqlashda xatolik: " + result.message);
+      }
+      
+    } catch(error) {
+      console.error("Xatolik:", error);
+      alert("Internet aloqasini tekshiring");
+    }
   }
 
   function clearAll(){
     answers={};
-    document.querySelectorAll(".abcd-btn").forEach(b=>b.classList.remove("selected"));
-  }
-
-  async function submitTest(){
-    if(!userId){
-      alert("Telegram user aniqlanmadi");
-      return;
+    document.querySelectorAll('.abcd-btn').forEach(b=>b.classList.remove('selected'));
+    for(let i=numClosed+1;i<=numClosed+numOpen;i++){
+      document.getElementById('answer-'+i).setValue('',{format:'text'});
     }
-
-    const payload = {
-      userId: userId,
-      answers: answers,
-      submittedAt: Date.now()
-    };
-
-    await fetch("https://SENING_WORKER_URL", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
-
-    document.getElementById("submitInfo").style.display="block";
-    tg.close();
+    localStorage.removeItem('testAnswers');
+    document.getElementById('submitInfo').style.display='none';
+    document.getElementById('resultInfo').style.display='none';
   }
 
-  createQuestions();
+  function copyResultId(){
+    navigator.clipboard.writeText(resultId)
+      .then(() => alert("ID nusxalandi: " + resultId))
+      .catch(err => console.error("Nusxalash xatosi:", err));
+  }
+
+  function loadAnswers(){
+    const saved=localStorage.getItem('testAnswers');
+    if(saved){ 
+      answers=JSON.parse(saved);
+      for(let i=1;i<=numClosed;i++){ 
+        if(answers[i]){
+          document.querySelectorAll(`#questionsContainer .question:nth-child(${i}) .abcd-btn`).forEach(b=>{
+            if(b.textContent===answers[i]) b.classList.add('selected');
+          });
+        }
+      }
+      for(let i=numClosed+1;i<=numClosed+numOpen;i++){ 
+        if(answers[i])
+          document.getElementById('answer-'+i).setValue(answers[i],{format:'text'});
+      }
+    }
+  }
+
+  window.onload=function(){ 
+    createQuestions(); 
+    loadAnswers(); 
+  }
 </script>
 </body>
 </html>
