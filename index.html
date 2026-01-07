@@ -3,11 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mini Test</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <title>Javoblar</title>
   <script defer src="https://cdn.jsdelivr.net/npm/mathlive"></script>
   <style>
-    /* O'zgarishsiz */
+    body{margin:0;font-family:Arial,sans-serif;background:#f0f2f5;padding:5px;}
+    .container{max-width:600px;margin:auto;background:white;padding:5px;border-radius:10px;}
+    .question{padding:8px;border-radius:5px;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center;font-size:16px;}
+    .question:nth-child(odd){background:#e8e8e8;}
+    .question:nth-child(even){background:#fff;}
+    .abcd-btn{padding:5px 8px;margin-left:4px;border:1px solid #ccc;border-radius:5px;cursor:pointer;font-weight:bold;font-size:14px;}
+    .abcd-btn.selected{background:#3498db;color:white;border-color:#2980b9;}
+    math-field{width:99%;padding:5px;border:1px solid #ccc;border-radius:5px;margin-top:5px;font-size:16px;}
+    .open-math{font-size:14px;padding:4px;}
+    .action-btn{padding:10px;margin-top:10px;width:48%;border:none;border-radius:5px;color:white;cursor:pointer;font-size:16px;}
+    .clear-btn{background:#e74c3c;margin-right:4%;}
+    .submit-btn{background:#2ecc71;}
+    #submitInfo{text-align:center;font-weight:bold;margin-top:15px;display:none;color:#27ae60;font-size:16px;}
   </style>
 </head>
 <body>
@@ -18,37 +29,24 @@
     <button class="action-btn submit-btn" onclick="submitTest()">📤 Topshirish</button>
   </div>
   <div id="submitInfo">✅ Test topshirildi</div>
-  <div id="status" style="margin-top:10px;font-size:12px;color:#666;"></div>
 </div>
 
 <script>
-  const tg = Telegram.WebApp;
-  tg.ready();
-  tg.expand();
+  let answers={};
 
-  let answers = {};
-  const numClosed = 30;
-  const numOpen = 5;
-  
-  // Worker URL ni aniqlash
-  const WORKER_URL = "https://miniapp-api.adhamov20072.workers.dev";
-  
-  // Statusni yangilash
-  function updateStatus(message, isError = false) {
-    const statusDiv = document.getElementById('status');
-    statusDiv.textContent = message;
-    statusDiv.style.color = isError ? '#e74c3c' : '#27ae60';
-    console.log("Status:", message);
-  }
+  // admin botdan oladi:
+  const numClosed = 30; // yopiq savollar soni (botdan olindi)
+  const numOpen = 5;    // ochiq savollar soni (botdan olindi)
 
   function createQuestions(){
-    const container = document.getElementById('questionsContainer');
-    container.innerHTML = '';
+    const container=document.getElementById('questionsContainer');
+    container.innerHTML='';
 
+    // yopiq savollar
     for(let i=1;i<=numClosed;i++){
-      const q = document.createElement('div');
-      q.className = 'question';
-      q.innerHTML = `
+      const q=document.createElement('div');
+      q.className='question';
+      q.innerHTML=`
         <div>${i}.</div>
         <div>
           <button class="abcd-btn" onclick="selectAnswer(${i},'A',this)">A</button>
@@ -59,243 +57,64 @@
       container.appendChild(q);
     }
 
+    // ochiq savollar
     for(let i=numClosed+1;i<=numClosed+numOpen;i++){
-      const q = document.createElement('div');
-      q.className = 'question';
+      const q=document.createElement('div');
+      q.className='question';
       q.style.flexDirection='column';
       q.style.alignItems='flex-start';
       q.style.background = (i%2===1)? '#e8e8e8' : '#fff';
-      q.innerHTML = `<div>${i}.</div>
-        <math-field id="answer-${i}" class="open-math" virtual-keyboard-mode="onfocus"></math-field>`;
+      q.innerHTML=`<div>${i}.</div>
+        <math-field id="answer-${i}" class="open-math" virtual-keyboard-mode="onfocus"
+        oninput="updateOpenAnswer(${i}, this.getValue('text'))"></math-field>`;
       container.appendChild(q);
     }
   }
 
-  function selectAnswer(qNum, ans, btn){
-    answers[qNum] = ans;
+  function selectAnswer(qNum,ans,btn){
+    answers[qNum]=ans;
     btn.parentElement.querySelectorAll('.abcd-btn').forEach(b=>b.classList.remove('selected'));
     btn.classList.add('selected');
     saveAnswers();
   }
 
+  function updateOpenAnswer(qNum,val){ answers[qNum]=val; saveAnswers(); }
+
   function clearAll(){
-    answers = {};
+    answers={};
     document.querySelectorAll('.abcd-btn').forEach(b=>b.classList.remove('selected'));
     for(let i=numClosed+1;i<=numClosed+numOpen;i++){
-      const mf = document.getElementById('answer-'+i);
-      if(mf) mf.setValue('',{format:'text'});
+      document.getElementById('answer-'+i).setValue('',{format:'text'});
     }
     localStorage.removeItem('testAnswers');
     document.getElementById('submitInfo').style.display='none';
-    updateStatus("Barcha javoblar tozalandi");
   }
 
-  function saveAnswers(){ 
-    localStorage.setItem('testAnswers', JSON.stringify(answers)); 
+  function submitTest(){
+    if(Object.keys(answers).length===0){ alert("Hech qanday javob tanlanmagan!"); return; }
+    document.getElementById('questionsContainer').style.display='none';
+    document.querySelectorAll('.action-btn').forEach(b=>b.style.display='none');
+    document.getElementById('submitInfo').style.display='block';
+    console.log("Topshirilgan javoblar:",answers);
   }
+
+  function saveAnswers(){ localStorage.setItem('testAnswers',JSON.stringify(answers)); }
 
   function loadAnswers(){
-    const saved = localStorage.getItem('testAnswers');
-    if(saved){ 
-      answers = JSON.parse(saved);
-      for(let i=1;i<=numClosed;i++){
-        if(answers[i]){
-          const questionDiv = document.querySelector(`#questionsContainer .question:nth-child(${i})`);
-          if(questionDiv){
-            const buttons = questionDiv.querySelectorAll('.abcd-btn');
-            buttons.forEach(b=>{
-              if(b.textContent===answers[i]) b.classList.add('selected');
-            });
-          }
-        }
-      }
-      for(let i=numClosed+1;i<=numClosed+numOpen;i++){
-        if(answers[i]){
-          const mf = document.getElementById('answer-'+i);
-          if(mf) mf.setValue(answers[i],{format:'text'});
-        }
+    const saved=localStorage.getItem('testAnswers');
+    if(saved){ answers=JSON.parse(saved);
+      for(let i=1;i<=numClosed;i++){ if(answers[i]){
+        document.querySelectorAll(`#questionsContainer .question:nth-child(${i}) .abcd-btn`).forEach(b=>{
+          if(b.textContent===answers[i]) b.classList.add('selected');
+        });
+      }}
+      for(let i=numClosed+1;i<=numClosed+numOpen;i++){ if(answers[i])
+        document.getElementById('answer-'+i).setValue(answers[i],{format:'text'});
       }
     }
   }
 
-  function collectOpenAnswers() {
-    for(let i=numClosed+1;i<=numClosed+numOpen;i++){
-      const mf = document.getElementById('answer-'+i);
-      if(mf){
-        let value = '';
-        
-        if(mf.getValue && typeof mf.getValue === 'function'){
-          value = mf.getValue('text');
-        } else if(mf.value){
-          value = mf.value;
-        } else if(mf.textContent){
-          value = mf.textContent;
-        }
-        
-        if(value && value.trim() !== ''){
-          answers[i] = value.trim();
-        } else {
-          delete answers[i];
-        }
-      }
-    }
-  }
-
-  // TEST: Worker bilan aloqa
-  async function testWorkerConnection() {
-    updateStatus("Worker bilan aloqa tekshirilmoqda...");
-    try {
-      const response = await fetch(`${WORKER_URL}/health`);
-      const data = await response.json();
-      updateStatus(`✅ Worker ishlamoqda: ${data.status}`);
-      console.log("Worker health check:", data);
-      return true;
-    } catch (error) {
-      updateStatus(`❌ Worker bilan aloqa xatosi: ${error.message}`, true);
-      console.error("Worker connection error:", error);
-      return false;
-    }
-  }
-
-  async function sendAnswers(){
-    collectOpenAnswers();
-    
-    const payload = {
-      userId: tg.initDataUnsafe?.user?.id || "demo_" + Date.now(),
-      userName: tg.initDataUnsafe?.user?.first_name || "Foydalanuvchi",
-      timestamp: new Date().toISOString(),
-      testInfo: {
-        closedQuestions: numClosed,
-        openQuestions: numOpen,
-        totalQuestions: numClosed + numOpen
-      },
-      answers: answers
-    };
-
-    console.log("Payload:", payload);
-    updateStatus("Ma'lumotlar yuborilmoqda...");
-
-    try {
-      // Worker ga so'rov yuborish
-      const response = await fetch(WORKER_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      });
-
-      console.log("Response status:", response.status, response.statusText);
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const result = await response.json();
-      console.log("Server response:", result);
-
-      if (result.success) {
-        updateStatus(`✅ Test topshirildi! Yopiq: ${result.stats?.closed || 0}, Ochiq: ${result.stats?.open || 0}`);
-        return result;
-      } else {
-        updateStatus(`❌ Xato: ${result.error || "Noma'lum xatolik"}`, true);
-        return null;
-      }
-
-    } catch (error) {
-      console.error("Fetch error details:", {
-        message: error.message,
-        name: error.name,
-        stack: error.stack
-      });
-      
-      // Batafsil xato xabari
-      let errorMessage = `Tarmoq xatosi: ${error.message}`;
-      
-      // Qo'shimcha tafsilotlar
-      if (error.message.includes('Failed to fetch')) {
-        errorMessage += "\nSabab: Worker URL noto'g'ri yoki CORS muammosi";
-      } else if (error.message.includes('NetworkError')) {
-        errorMessage += "\nSabab: Internet aloqasi muammosi";
-      } else if (error.message.includes('CORS')) {
-        errorMessage += "\nSabab: CORS siyosati (Worker da CORS sozlanmagan)";
-      }
-      
-      updateStatus(errorMessage, true);
-      alert(errorMessage);
-      return null;
-    }
-  }
-
-  async function submitTest(){
-    collectOpenAnswers();
-    
-    const totalAnswers = Object.keys(answers).length;
-    if(totalAnswers === 0){
-      alert("Hech qanday javob tanlanmagan!");
-      return;
-    }
-    
-    // Avval worker bilan aloqa tekshirish
-    const isWorkerAlive = await testWorkerConnection();
-    if (!isWorkerAlive) {
-      if (!confirm("Worker bilan aloqa muammosi. Davom ettirasizmi?\n(Javoblar lokal saqlanadi)")) {
-        return;
-      }
-    }
-    
-    // Javoblarni saqlash
-    saveAnswers();
-    
-    // Worker ga yuborish
-    const result = await sendAnswers();
-    
-    if (result && result.success) {
-      // Muvaffaqiyatli yuborilganda
-      document.getElementById('questionsContainer').style.display='none';
-      document.querySelectorAll('.action-btn').forEach(b=>b.style.display='none');
-      document.getElementById('submitInfo').style.display='block';
-      
-      // Ochiq javoblar saqlanganligini tekshirish
-      if (result.stats?.open > 0) {
-        console.log("Ochiq javoblar saqlandi:", result.stats.openAnswers);
-      }
-    } else {
-      // Xato bo'lsa, lokal saqlash
-      alert("Javoblar faqat lokal saqlandi. Keyinroq qayta urinib ko'ring.");
-    }
-  }
-
-  // Sahifa yuklanganda
-  document.addEventListener('DOMContentLoaded', function() {
-    createQuestions();
-    
-    setTimeout(() => {
-      loadAnswers();
-      
-      // Ochiq savollarga event listener
-      for(let i=numClosed+1;i<=numClosed+numOpen;i++){
-        const mf = document.getElementById('answer-'+i);
-        if(mf){
-          mf.addEventListener('input', function() {
-            collectOpenAnswers();
-            saveAnswers();
-          });
-        }
-      }
-      
-      // Worker bilan aloqa tekshirish
-      setTimeout(testWorkerConnection, 1000);
-      
-    }, 500);
-  });
-
-  // Global error handler
-  window.addEventListener('error', function(event) {
-    console.error("Global error:", event.error);
-    updateStatus(`Global xato: ${event.message}`, true);
-  });
+  window.onload=function(){ createQuestions(); loadAnswers(); }
 </script>
 </body>
 </html>
