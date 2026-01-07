@@ -33,15 +33,13 @@
 </div>
 
 <script>
-  // Telegram WebApp
   const tg = Telegram.WebApp;
   tg.ready();
 
   let answers = {};
 
-  // Yopiq va ochiq savollar soni
-  const numClosed = 30; 
-  const numOpen = 5;    
+  const numClosed = 30; // yopiq savollar soni
+  const numOpen = 5;    // ochiq savollar soni
 
   // Savollarni yaratish
   function createQuestions(){
@@ -71,8 +69,7 @@
       q.style.alignItems='flex-start';
       q.style.background = (i%2===1)? '#e8e8e8' : '#fff';
       q.innerHTML = `<div>${i}.</div>
-        <math-field id="answer-${i}" class="open-math" virtual-keyboard-mode="onfocus"
-        oninput="updateOpenAnswer(${i}, this.getValue('text'))"></math-field>`;
+        <math-field id="answer-${i}" class="open-math" virtual-keyboard-mode="onfocus"></math-field>`;
       container.appendChild(q);
     }
   }
@@ -82,11 +79,6 @@
     btn.parentElement.querySelectorAll('.abcd-btn').forEach(b=>b.classList.remove('selected'));
     btn.classList.add('selected');
     saveAnswers();
-  }
-
-  function updateOpenAnswer(qNum, val){ 
-    answers[qNum] = val; 
-    saveAnswers(); 
   }
 
   function clearAll(){
@@ -141,12 +133,18 @@
   }
 
   function submitTest(){
+    // Ochiq savollarni submit paytida alohida o'qib olish
+    for(let i=numClosed+1;i<=numClosed+numOpen;i++){
+      const val = document.getElementById('answer-'+i).getValue('text').trim();
+      if(val) answers[i] = val;
+    }
+
     if(Object.keys(answers).length===0){
       alert("Hech qanday javob tanlanmagan!");
       return;
     }
 
-    sendAnswers(); // UserId + answers yuboriladi
+    sendAnswers(); // KV ga yuboriladi
 
     document.getElementById('questionsContainer').style.display='none';
     document.querySelectorAll('.action-btn').forEach(b=>b.style.display='none');
