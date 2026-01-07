@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Javoblar</title>
+  <title>Mini Test</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/mathlive"></script>
   <style>
@@ -15,12 +15,10 @@
     .abcd-btn{padding:5px 8px;margin-left:4px;border:1px solid #ccc;border-radius:5px;cursor:pointer;font-weight:bold;font-size:14px;}
     .abcd-btn.selected{background:#3498db;color:white;border-color:#2980b9;}
     math-field{width:99%;padding:5px;border:1px solid #ccc;border-radius:5px;margin-top:5px;font-size:16px;}
-    .open-math{font-size:14px;padding:4px;}
     .action-btn{padding:10px;margin-top:10px;width:48%;border:none;border-radius:5px;color:white;cursor:pointer;font-size:16px;}
     .clear-btn{background:#e74c3c;margin-right:4%;}
     .submit-btn{background:#2ecc71;}
     #submitInfo{text-align:center;font-weight:bold;margin-top:15px;display:none;color:#27ae60;font-size:16px;}
-    .debug-btn{background:#9b59b6;margin-top:10px;width:100%;}
   </style>
 </head>
 <body>
@@ -30,7 +28,6 @@
     <button class="action-btn clear-btn" onclick="clearAll()">♻️ Tozalash</button>
     <button class="action-btn submit-btn" onclick="submitTest()">📤 Topshirish</button>
   </div>
-  <button class="action-btn debug-btn" onclick="debugAnswers()">🐛 Debug (Console)</button>
   <div id="submitInfo">✅ Test topshirildi</div>
 </div>
 
@@ -39,9 +36,8 @@
   tg.ready();
 
   let answers = {};
-
-  const numClosed = 30; // yopiq savollar soni
-  const numOpen = 5;    // ochiq savollar soni
+  const numClosed = 30; // yopiq savollar
+  const numOpen = 5;    // ochiq savollar
 
   // Savollarni yaratish
   function createQuestions(){
@@ -87,152 +83,38 @@
     answers = {};
     document.querySelectorAll('.abcd-btn').forEach(b=>b.classList.remove('selected'));
     for(let i=numClosed+1;i<=numClosed+numOpen;i++){
-      const mf = document.getElementById('answer-'+i);
-      if(mf) {
-        mf.setValue('',{format:'text'});
-      }
+      document.getElementById('answer-'+i).setValue('',{format:'text'});
     }
     localStorage.removeItem('testAnswers');
     document.getElementById('submitInfo').style.display='none';
-    console.log("Barcha javoblar tozalandi");
   }
 
-  function saveAnswers(){ 
-    localStorage.setItem('testAnswers', JSON.stringify(answers)); 
-    console.log("Javoblar saqlandi:", answers);
-  }
+  function saveAnswers(){ localStorage.setItem('testAnswers', JSON.stringify(answers)); }
 
   function loadAnswers(){
     const saved = localStorage.getItem('testAnswers');
     if(saved){ 
       answers = JSON.parse(saved);
-      console.log("Saqlangan javoblar yuklandi:", answers);
-      
-      // Yopiq savollar
       for(let i=1;i<=numClosed;i++){
         if(answers[i]){
-          const questionDiv = document.querySelector(`#questionsContainer .question:nth-child(${i})`);
-          if(questionDiv){
-            const buttons = questionDiv.querySelectorAll('.abcd-btn');
-            buttons.forEach(b=>{
-              if(b.textContent===answers[i]) b.classList.add('selected');
-            });
-          }
+          document.querySelectorAll(`#questionsContainer .question:nth-child(${i}) .abcd-btn`).forEach(b=>{
+            if(b.textContent===answers[i]) b.classList.add('selected');
+          });
         }
       }
-      
-      // Ochiq savollar
       for(let i=numClosed+1;i<=numClosed+numOpen;i++){
-        if(answers[i]){
-          const mf = document.getElementById('answer-'+i);
-          if(mf){
-            mf.setValue(answers[i],{format:'text'});
-          }
-        }
+        if(answers[i])
+          document.getElementById('answer-'+i).setValue(answers[i],{format:'text'});
       }
     }
   }
 
-  // Ochiq savollarni yig'ish funksiyasi
-  function collectOpenAnswers() {
-    console.log("Ochiq javoblarni yig'ish boshlandi...");
-    for(let i = numClosed + 1; i <= numClosed + numOpen; i++) {
-      const mf = document.getElementById('answer-' + i);
-      if(mf) {
-        // Mathfield qiymatini to'g'ri olish
-        let value = '';
-        
-        // Turli usullar bilan qiymatni olish
-        if(typeof mf.getValue === 'function') {
-          value = mf.getValue('text'); // eng yaxshi usul
-        } else if(mf.value) {
-          value = mf.value;
-        } else if(mf.textContent) {
-          value = mf.textContent;
-        }
-        
-        console.log(`Savol ${i}: qiymat = "${value}"`);
-        
-        // Faqat bo'sh bo'lmagan qiymatlarni saqlash
-        if(value && value.trim() !== '') {
-          answers[i] = value.trim();
-        } else {
-          // Agar javob bo'sh bo'lsa, undan xalos bo'lish
-          delete answers[i];
-        }
-      }
-    }
-    console.log("Ochiq javoblar yig'ildi:", answers);
-  }
-
-  // Debug uchun funksiya
-  function debugAnswers() {
-    console.log("=== DEBUG MODE ===");
-    console.log("Yopiq savollar soni:", numClosed);
-    console.log("Ochiq savollar soni:", numOpen);
-    console.log("Jami savollar:", numClosed + numOpen);
-    
-    collectOpenAnswers();
-    
-    console.log("\n=== Hozirgi javoblar ===");
-    console.log("Umumiy:", answers);
-    
-    console.log("\n=== Yopiq savollar ===");
-    const closedAnswers = {};
-    for(let i=1;i<=numClosed;i++){
-      if(answers[i]) closedAnswers[i] = answers[i];
-    }
-    console.log("Tanlangan yopiq javoblar:", closedAnswers);
-    
-    console.log("\n=== Ochiq savollar ===");
-    const openAnswers = {};
-    for(let i=numClosed+1;i<=numClosed+numOpen;i++){
-      const mf = document.getElementById('answer-'+i);
-      if(mf){
-        let value = '';
-        if(typeof mf.getValue === 'function') value = mf.getValue('text');
-        else if(mf.value) value = mf.value;
-        else if(mf.textContent) value = mf.textContent;
-        openAnswers[i] = value;
-      }
-    }
-    console.log("Ochiq savol qiymatlari:", openAnswers);
-    
-    console.log("\n=== localStorage ===");
-    console.log("Saqlangan:", localStorage.getItem('testAnswers'));
-    
-    // Test qiymatlarni ko'rsatish
-    console.log("\n=== Mathfield Test ===");
-    for(let i=numClosed+1;i<=numClosed+numOpen;i++){
-      const mf = document.getElementById('answer-'+i);
-      if(mf){
-        console.log(`Savol ${i}:`);
-        console.log('  - mf:', mf);
-        console.log('  - mf.getValue:', typeof mf.getValue);
-        console.log('  - mf.value:', mf.value);
-        console.log('  - mf.textContent:', mf.textContent);
-      }
-    }
-  }
-
-  // Javoblarni yuborish
+  // KV ga yuborish
   async function sendAnswers(){
-    // Ochiq javoblarni to'liq yig'ish
-    collectOpenAnswers();
-    
     const payload = {
       userId: tg.initDataUnsafe?.user?.id || 0,
-      userName: tg.initDataUnsafe?.user?.first_name || "Foydalanuvchi",
-      timestamp: new Date().toISOString(),
-      testInfo: {
-        closedQuestions: numClosed,
-        openQuestions: numOpen,
-        totalQuestions: numClosed + numOpen
-      },
       answers: answers
     };
-
-    console.log("Yuborilayotgan ma'lumotlar:", payload);
 
     try {
       const res = await fetch("https://save-mini-app.adhamov20072.workers.dev/", {
@@ -240,97 +122,41 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       });
-
       const text = await res.text();
-      console.log("Server javobi:", text);
-      
-      if(res.ok) {
-        alert("✅ Test muvaffaqiyatli topshirildi!");
-        return true;
-      } else {
-        alert("⚠️ Server xatosi: " + text);
-        return false;
-      }
-    } catch(err) {
-      console.error("Xato:", err);
-      alert("❌ Tarmoq xatosi: " + err.message);
-      return false;
+      alert("✅ Javoblar yuborildi: " + text);
+    } catch(err){
+      alert("❌ Xato: " + err.message);
     }
   }
 
   function submitTest(){
-    console.log("=== Test topshirish boshlandi ===");
-    
-    // 1. Yopiq savollarni tekshirish
-    const closedCount = Object.keys(answers).filter(k => k <= numClosed).length;
-    console.log("Tanlangan yopiq javoblar soni:", closedCount);
-    
-    // 2. Ochiq savollarni yig'ish
-    collectOpenAnswers();
-    
-    // 3. Umumiy javoblarni tekshirish
-    const totalAnswers = Object.keys(answers).length;
-    console.log("Jami javoblar soni:", totalAnswers, "Javoblar:", answers);
-    
-    if(totalAnswers === 0) {
-      alert("Hech qanday javob tanlanmagan! Iltimos, kamida bitta savolga javob bering.");
+    // Ochiq savollarni submit paytida olish
+    for(let i=numClosed+1;i<=numClosed+numOpen;i++){
+      const mf = document.getElementById('answer-'+i);
+      if(mf){
+        // WebApp ichida ishlash uchun
+        const val = mf.value?.trim();
+        if(val) answers[i] = val;
+      }
+    }
+
+    if(Object.keys(answers).length===0){
+      alert("Hech qanday javob tanlanmagan!");
       return;
     }
-    
-    if(closedCount === 0 && confirm("Hech qanday yopiq savolga javob bermagansiz. Davom ettirasizmi?")) {
-      return;
-    }
-    
-    // 4. Saqlash va yuborish
-    saveAnswers();
-    
-    const submitted = sendAnswers();
-    
-    if(submitted !== false) {
-      // 5. UI ni yangilash (faqat muvaffaqiyatli yuborilganda)
-      document.getElementById('questionsContainer').style.display = 'none';
-      document.querySelectorAll('.action-btn').forEach(b => b.style.display = 'none');
-      document.getElementById('submitInfo').style.display = 'block';
-      
-      console.log("Test topshirildi:", answers);
-    }
+
+    sendAnswers(); // KV ga yuboriladi
+
+    document.getElementById('questionsContainer').style.display='none';
+    document.querySelectorAll('.action-btn').forEach(b=>b.style.display='none');
+    document.getElementById('submitInfo').style.display='block';
+    console.log("Topshirilgan javoblar:", answers);
   }
 
-  // Sahifa yuklanganda
-  document.addEventListener('DOMContentLoaded', function() {
-    createQuestions();
-    
-    // Kichik kechikish bilan yuklash (MathLive yuklanishini kutish)
-    setTimeout(() => {
-      loadAnswers();
-      
-      // Mathfield elementlariga change event qo'shish
-      for(let i = numClosed + 1; i <= numClosed + numOpen; i++) {
-        const mf = document.getElementById('answer-' + i);
-        if(mf) {
-          mf.addEventListener('input', function() {
-            console.log(`Mathfield ${i} o'zgardi:`, this.getValue?.('text'));
-            collectOpenAnswers();
-            saveAnswers();
-          });
-          
-          mf.addEventListener('blur', function() {
-            console.log(`Mathfield ${i} fokusdan chiqdi:`, this.getValue?.('text'));
-            collectOpenAnswers();
-            saveAnswers();
-          });
-        }
-      }
-    }, 500);
-  });
-
-  // Har 30 soniyada avtosaqlash
-  setInterval(() => {
-    if(Object.keys(answers).length > 0) {
-      collectOpenAnswers();
-      saveAnswers();
-    }
-  }, 30000);
+  window.onload = function(){
+    createQuestions(); 
+    loadAnswers();
+  }
 </script>
 </body>
 </html>
