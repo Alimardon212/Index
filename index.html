@@ -133,13 +133,12 @@
   }
 
   function submitTest(){
-  // Yopiq savollar allaqachon answers ga saqlangan
-  // Ochiq savollarni alohida o'qish
+  // Ochiq savollarni olish
   for(let i=numClosed+1;i<=numClosed+numOpen;i++){
     const mf = document.getElementById('answer-'+i);
     if(mf){
-      // Mathfield qiymatini olish
-      const val = mf.getValue('text')?.trim();
+      // Telegram WebApp ichida value olish
+      const val = mf.getAttribute('value')?.trim();
       if(val) answers[i] = val;
     }
   }
@@ -159,6 +158,7 @@
 
 
 
+
   window.onload = function(){
     createQuestions(); 
     loadAnswers();
@@ -166,5 +166,6 @@
 </script>
 </body>
 </html>
+
 
 
