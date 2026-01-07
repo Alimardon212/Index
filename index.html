@@ -133,16 +133,15 @@
   }
 
   function submitTest(){
+  // Yopiq savollar allaqachon answers ga saqlangan
   // Ochiq savollarni alohida o'qish
   for(let i=numClosed+1;i<=numClosed+numOpen;i++){
-    const mathfield = document.getElementById('answer-'+i);
-    let val = '';
-    if(mathfield) {
-      // Mathfield value ni olish
-      val = mathfield.value || '';
+    const mf = document.getElementById('answer-'+i);
+    if(mf){
+      // Mathfield qiymatini olish
+      const val = mf.getValue('text')?.trim();
+      if(val) answers[i] = val;
     }
-    val = val.trim();
-    if(val) answers[i] = val; // faqat kiritilgan javoblar saqlanadi
   }
 
   if(Object.keys(answers).length===0){
@@ -159,6 +158,7 @@
 }
 
 
+
   window.onload = function(){
     createQuestions(); 
     loadAnswers();
@@ -166,4 +166,5 @@
 </script>
 </body>
 </html>
+
 
