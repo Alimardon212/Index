@@ -19,6 +19,7 @@
     .clear-btn{background:#e74c3c;margin-right:4%;}
     .submit-btn{background:#2ecc71;}
     #submitInfo{text-align:center;font-weight:bold;margin-top:15px;display:none;color:#27ae60;font-size:16px;}
+    #debugInfo{font-size:12px;color:#666;margin-top:10px;padding:5px;background:#f8f9fa;border-radius:5px;display:none;}
   </style>
 </head>
 <body>
@@ -29,11 +30,13 @@
     <button class="action-btn submit-btn" onclick="submitTest()">📤 Topshirish</button>
   </div>
   <div id="submitInfo">✅ Test topshirildi</div>
+  <div id="debugInfo"></div>
 </div>
 
 <script>
   const tg = Telegram.WebApp;
   tg.ready();
+  tg.expand(); // WebApp ni kengaytirish
 
   let answers = {};
   const numClosed = 30; // yopiq savollar
@@ -83,80 +86,200 @@
     answers = {};
     document.querySelectorAll('.abcd-btn').forEach(b=>b.classList.remove('selected'));
     for(let i=numClosed+1;i<=numClosed+numOpen;i++){
-      document.getElementById('answer-'+i).setValue('',{format:'text'});
+      const mf = document.getElementById('answer-'+i);
+      if(mf) mf.setValue('',{format:'text'});
     }
     localStorage.removeItem('testAnswers');
     document.getElementById('submitInfo').style.display='none';
+    document.getElementById('debugInfo').style.display='none';
+    console.log("Barcha javoblar tozalandi");
   }
 
-  function saveAnswers(){ localStorage.setItem('testAnswers', JSON.stringify(answers)); }
+  function saveAnswers(){ 
+    localStorage.setItem('testAnswers', JSON.stringify(answers)); 
+  }
 
   function loadAnswers(){
     const saved = localStorage.getItem('testAnswers');
     if(saved){ 
       answers = JSON.parse(saved);
+      // Yopiq savollar
       for(let i=1;i<=numClosed;i++){
         if(answers[i]){
-          document.querySelectorAll(`#questionsContainer .question:nth-child(${i}) .abcd-btn`).forEach(b=>{
-            if(b.textContent===answers[i]) b.classList.add('selected');
-          });
+          const questionDiv = document.querySelector(`#questionsContainer .question:nth-child(${i})`);
+          if(questionDiv){
+            const buttons = questionDiv.querySelectorAll('.abcd-btn');
+            buttons.forEach(b=>{
+              if(b.textContent===answers[i]) b.classList.add('selected');
+            });
+          }
         }
       }
+      // Ochiq savollar
       for(let i=numClosed+1;i<=numClosed+numOpen;i++){
-        if(answers[i])
-          document.getElementById('answer-'+i).setValue(answers[i],{format:'text'});
+        if(answers[i]){
+          const mf = document.getElementById('answer-'+i);
+          if(mf) mf.setValue(answers[i],{format:'text'});
+        }
       }
     }
+  }
+
+  // Ochiq savollarni to'g'ri olish
+  function collectOpenAnswers() {
+    console.log("Ochiq savollarni yig'ish...");
+    for(let i=numClosed+1;i<=numClosed+numOpen;i++){
+      const mf = document.getElementById('answer-'+i);
+      if(mf){
+        let value = '';
+        
+        // Mathfield qiymatini olish uchun turli usullar
+        if(mf.getValue && typeof mf.getValue === 'function'){
+          value = mf.getValue('text');
+        } else if(mf.value){
+          value = mf.value;
+        } else if(mf.textContent){
+          value = mf.textContent;
+        }
+        
+        console.log(`Savol ${i}: "${value}"`);
+        
+        // Faqat bo'sh bo'lmagan qiymatlarni saqlash
+        if(value && value.trim() !== ''){
+          answers[i] = value.trim();
+        } else {
+          // Bo'sh bo'lsa, o'chirish
+          delete answers[i];
+        }
+      }
+    }
+    console.log("Yig'ilgan ochiq javoblar:", answers);
   }
 
   // KV ga yuborish
   async function sendAnswers(){
+    // Ochiq javoblarni yana bir bor yig'ish
+    collectOpenAnswers();
+    
     const payload = {
-      userId: tg.initDataUnsafe?.user?.id || 0,
+      userId: tg.initDataUnsafe?.user?.id || "demo_" + Date.now(),
+      userName: tg.initDataUnsafe?.user?.first_name || "Foydalanuvchi",
+      timestamp: new Date().toISOString(),
+      testInfo: {
+        closedQuestions: numClosed,
+        openQuestions: numOpen,
+        totalQuestions: numClosed + numOpen
+      },
       answers: answers
     };
 
+    console.log("Yuborilayotgan ma'lumotlar:", payload);
+    
+    // Debug ma'lumotlarni ko'rsatish
+    document.getElementById('debugInfo').innerHTML = `
+      <strong>Yuborilayapti:</strong><br>
+      User ID: ${payload.userId}<br>
+      Yopiq javoblar: ${Object.keys(answers).filter(k => k <= numClosed).length}<br>
+      Ochiq javoblar: ${Object.keys(answers).filter(k => k > numClosed).length}<br>
+      Ochiq javoblar: ${JSON.stringify(Object.keys(answers).filter(k => k > numClosed).map(k => `${k}: ${answers[k]}`))}
+    `;
+    document.getElementById('debugInfo').style.display = 'block';
+
     try {
-      const res = await fetch("https://save-mini-app.adhamov20072.workers.dev/", {
+      const res = await fetch("https://miniapp-api.adhamov20072.workers.dev/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       });
-      const text = await res.text();
-      alert("✅ Javoblar yuborildi: " + text);
+      
+      const result = await res.json();
+      console.log("Server javobi:", result);
+      
+      if(res.ok && result.success){
+        let message = `✅ Test topshirildi!\nYopiq: ${result.stats?.closed || 0}\nOchiq: ${result.stats?.open || 0}`;
+        
+        // Ochiq javoblar saqlanganligini tekshirish
+        if(result.stats?.open > 0){
+          message += `\nOchiq javoblar saqlandi!`;
+        }
+        
+        alert(message);
+        return true;
+      } else {
+        alert(`❌ Xato: ${result.error || "Noma'lum xatolik"}`);
+        return false;
+      }
     } catch(err){
-      alert("❌ Xato: " + err.message);
+      console.error("Tarmoq xatosi:", err);
+      alert(`❌ Tarmoq xatosi: ${err.message}`);
+      return false;
     }
   }
 
   function submitTest(){
-    // Ochiq savollarni submit paytida olish
-    for(let i=numClosed+1;i<=numClosed+numOpen;i++){
-      const mf = document.getElementById('answer-'+i);
-      if(mf){
-        // WebApp ichida ishlash uchun
-        const val = mf.value?.trim();
-        if(val) answers[i] = val;
-      }
-    }
-
-    if(Object.keys(answers).length===0){
-      alert("Hech qanday javob tanlanmagan!");
+    console.log("=== Test topshirish boshlanmoqda ===");
+    
+    // Ochiq javoblarni yig'ish
+    collectOpenAnswers();
+    
+    // Umumiy javoblarni tekshirish
+    const totalAnswers = Object.keys(answers).length;
+    const closedAnswers = Object.keys(answers).filter(k => k <= numClosed).length;
+    const openAnswers = Object.keys(answers).filter(k => k > numClosed).length;
+    
+    console.log(`Javoblar: Yopiq=${closedAnswers}, Ochiq=${openAnswers}, Jami=${totalAnswers}`);
+    
+    if(totalAnswers === 0){
+      alert("Hech qanday javob tanlanmagan! Iltimos, kamida bitta savolga javob bering.");
       return;
     }
-
-    sendAnswers(); // KV ga yuboriladi
-
-    document.getElementById('questionsContainer').style.display='none';
-    document.querySelectorAll('.action-btn').forEach(b=>b.style.display='none');
-    document.getElementById('submitInfo').style.display='block';
-    console.log("Topshirilgan javoblar:", answers);
+    
+    // Ogohlantirish
+    if(closedAnswers === 0){
+      if(!confirm("Hech qanday yopiq savolga javob bermagansiz. Davom ettirasizmi?")){
+        return;
+      }
+    }
+    
+    // Saqlash va yuborish
+    saveAnswers();
+    const submitted = sendAnswers();
+    
+    if(submitted !== false){
+      // UI ni yangilash
+      document.getElementById('questionsContainer').style.display='none';
+      document.querySelectorAll('.action-btn').forEach(b=>b.style.display='none');
+      document.getElementById('submitInfo').style.display='block';
+      
+      console.log("Test topshirildi:", answers);
+    }
   }
 
-  window.onload = function(){
-    createQuestions(); 
-    loadAnswers();
-  }
+  // Sahifa yuklanganda
+  document.addEventListener('DOMContentLoaded', function() {
+    createQuestions();
+    
+    // MathLive yuklanishini kutish
+    setTimeout(() => {
+      loadAnswers();
+      
+      // Ochiq savollarga event listener qo'shish
+      for(let i=numClosed+1;i<=numClosed+numOpen;i++){
+        const mf = document.getElementById('answer-'+i);
+        if(mf){
+          mf.addEventListener('input', function() {
+            collectOpenAnswers();
+            saveAnswers();
+          });
+          
+          mf.addEventListener('blur', function() {
+            collectOpenAnswers();
+            saveAnswers();
+          });
+        }
+      }
+    }, 500);
+  });
 </script>
 </body>
 </html>
