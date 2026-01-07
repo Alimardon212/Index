@@ -7,19 +7,7 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/mathlive"></script>
   <style>
-    body{margin:0;font-family:Arial,sans-serif;background:#f0f2f5;padding:5px;}
-    .container{max-width:600px;margin:auto;background:white;padding:5px;border-radius:10px;}
-    .question{padding:8px;border-radius:5px;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center;font-size:16px;}
-    .question:nth-child(odd){background:#e8e8e8;}
-    .question:nth-child(even){background:#fff;}
-    .abcd-btn{padding:5px 8px;margin-left:4px;border:1px solid #ccc;border-radius:5px;cursor:pointer;font-weight:bold;font-size:14px;}
-    .abcd-btn.selected{background:#3498db;color:white;border-color:#2980b9;}
-    math-field{width:99%;padding:5px;border:1px solid #ccc;border-radius:5px;margin-top:5px;font-size:16px;}
-    .action-btn{padding:10px;margin-top:10px;width:48%;border:none;border-radius:5px;color:white;cursor:pointer;font-size:16px;}
-    .clear-btn{background:#e74c3c;margin-right:4%;}
-    .submit-btn{background:#2ecc71;}
-    #submitInfo{text-align:center;font-weight:bold;margin-top:15px;display:none;color:#27ae60;font-size:16px;}
-    #debugInfo{font-size:12px;color:#666;margin-top:10px;padding:5px;background:#f8f9fa;border-radius:5px;display:none;}
+    /* O'zgarishsiz */
   </style>
 </head>
 <body>
@@ -30,24 +18,33 @@
     <button class="action-btn submit-btn" onclick="submitTest()">📤 Topshirish</button>
   </div>
   <div id="submitInfo">✅ Test topshirildi</div>
-  <div id="debugInfo"></div>
+  <div id="status" style="margin-top:10px;font-size:12px;color:#666;"></div>
 </div>
 
 <script>
   const tg = Telegram.WebApp;
   tg.ready();
-  tg.expand(); // WebApp ni kengaytirish
+  tg.expand();
 
   let answers = {};
-  const numClosed = 30; // yopiq savollar
-  const numOpen = 5;    // ochiq savollar
+  const numClosed = 30;
+  const numOpen = 5;
+  
+  // Worker URL ni aniqlash
+  const WORKER_URL = "https://miniapp-api.adhamov20072.workers.dev";
+  
+  // Statusni yangilash
+  function updateStatus(message, isError = false) {
+    const statusDiv = document.getElementById('status');
+    statusDiv.textContent = message;
+    statusDiv.style.color = isError ? '#e74c3c' : '#27ae60';
+    console.log("Status:", message);
+  }
 
-  // Savollarni yaratish
   function createQuestions(){
     const container = document.getElementById('questionsContainer');
     container.innerHTML = '';
 
-    // Yopiq savollar
     for(let i=1;i<=numClosed;i++){
       const q = document.createElement('div');
       q.className = 'question';
@@ -62,7 +59,6 @@
       container.appendChild(q);
     }
 
-    // Ochiq savollar
     for(let i=numClosed+1;i<=numClosed+numOpen;i++){
       const q = document.createElement('div');
       q.className = 'question';
@@ -91,8 +87,7 @@
     }
     localStorage.removeItem('testAnswers');
     document.getElementById('submitInfo').style.display='none';
-    document.getElementById('debugInfo').style.display='none';
-    console.log("Barcha javoblar tozalandi");
+    updateStatus("Barcha javoblar tozalandi");
   }
 
   function saveAnswers(){ 
@@ -103,7 +98,6 @@
     const saved = localStorage.getItem('testAnswers');
     if(saved){ 
       answers = JSON.parse(saved);
-      // Yopiq savollar
       for(let i=1;i<=numClosed;i++){
         if(answers[i]){
           const questionDiv = document.querySelector(`#questionsContainer .question:nth-child(${i})`);
@@ -115,7 +109,6 @@
           }
         }
       }
-      // Ochiq savollar
       for(let i=numClosed+1;i<=numClosed+numOpen;i++){
         if(answers[i]){
           const mf = document.getElementById('answer-'+i);
@@ -125,15 +118,12 @@
     }
   }
 
-  // Ochiq savollarni to'g'ri olish
   function collectOpenAnswers() {
-    console.log("Ochiq savollarni yig'ish...");
     for(let i=numClosed+1;i<=numClosed+numOpen;i++){
       const mf = document.getElementById('answer-'+i);
       if(mf){
         let value = '';
         
-        // Mathfield qiymatini olish uchun turli usullar
         if(mf.getValue && typeof mf.getValue === 'function'){
           value = mf.getValue('text');
         } else if(mf.value){
@@ -142,23 +132,32 @@
           value = mf.textContent;
         }
         
-        console.log(`Savol ${i}: "${value}"`);
-        
-        // Faqat bo'sh bo'lmagan qiymatlarni saqlash
         if(value && value.trim() !== ''){
           answers[i] = value.trim();
         } else {
-          // Bo'sh bo'lsa, o'chirish
           delete answers[i];
         }
       }
     }
-    console.log("Yig'ilgan ochiq javoblar:", answers);
   }
 
-  // KV ga yuborish
+  // TEST: Worker bilan aloqa
+  async function testWorkerConnection() {
+    updateStatus("Worker bilan aloqa tekshirilmoqda...");
+    try {
+      const response = await fetch(`${WORKER_URL}/health`);
+      const data = await response.json();
+      updateStatus(`✅ Worker ishlamoqda: ${data.status}`);
+      console.log("Worker health check:", data);
+      return true;
+    } catch (error) {
+      updateStatus(`❌ Worker bilan aloqa xatosi: ${error.message}`, true);
+      console.error("Worker connection error:", error);
+      return false;
+    }
+  }
+
   async function sendAnswers(){
-    // Ochiq javoblarni yana bir bor yig'ish
     collectOpenAnswers();
     
     const payload = {
@@ -173,85 +172,98 @@
       answers: answers
     };
 
-    console.log("Yuborilayotgan ma'lumotlar:", payload);
-    
-    // Debug ma'lumotlarni ko'rsatish
-    document.getElementById('debugInfo').innerHTML = `
-      <strong>Yuborilayapti:</strong><br>
-      User ID: ${payload.userId}<br>
-      Yopiq javoblar: ${Object.keys(answers).filter(k => k <= numClosed).length}<br>
-      Ochiq javoblar: ${Object.keys(answers).filter(k => k > numClosed).length}<br>
-      Ochiq javoblar: ${JSON.stringify(Object.keys(answers).filter(k => k > numClosed).map(k => `${k}: ${answers[k]}`))}
-    `;
-    document.getElementById('debugInfo').style.display = 'block';
+    console.log("Payload:", payload);
+    updateStatus("Ma'lumotlar yuborilmoqda...");
 
     try {
-      const res = await fetch("https://miniapp-api.adhamov20072.workers.dev/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      // Worker ga so'rov yuborish
+      const response = await fetch(WORKER_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
         body: JSON.stringify(payload)
       });
-      
-      const result = await res.json();
-      console.log("Server javobi:", result);
-      
-      if(res.ok && result.success){
-        let message = `✅ Test topshirildi!\nYopiq: ${result.stats?.closed || 0}\nOchiq: ${result.stats?.open || 0}`;
-        
-        // Ochiq javoblar saqlanganligini tekshirish
-        if(result.stats?.open > 0){
-          message += `\nOchiq javoblar saqlandi!`;
-        }
-        
-        alert(message);
-        return true;
-      } else {
-        alert(`❌ Xato: ${result.error || "Noma'lum xatolik"}`);
-        return false;
+
+      console.log("Response status:", response.status, response.statusText);
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-    } catch(err){
-      console.error("Tarmoq xatosi:", err);
-      alert(`❌ Tarmoq xatosi: ${err.message}`);
-      return false;
+
+      const result = await response.json();
+      console.log("Server response:", result);
+
+      if (result.success) {
+        updateStatus(`✅ Test topshirildi! Yopiq: ${result.stats?.closed || 0}, Ochiq: ${result.stats?.open || 0}`);
+        return result;
+      } else {
+        updateStatus(`❌ Xato: ${result.error || "Noma'lum xatolik"}`, true);
+        return null;
+      }
+
+    } catch (error) {
+      console.error("Fetch error details:", {
+        message: error.message,
+        name: error.name,
+        stack: error.stack
+      });
+      
+      // Batafsil xato xabari
+      let errorMessage = `Tarmoq xatosi: ${error.message}`;
+      
+      // Qo'shimcha tafsilotlar
+      if (error.message.includes('Failed to fetch')) {
+        errorMessage += "\nSabab: Worker URL noto'g'ri yoki CORS muammosi";
+      } else if (error.message.includes('NetworkError')) {
+        errorMessage += "\nSabab: Internet aloqasi muammosi";
+      } else if (error.message.includes('CORS')) {
+        errorMessage += "\nSabab: CORS siyosati (Worker da CORS sozlanmagan)";
+      }
+      
+      updateStatus(errorMessage, true);
+      alert(errorMessage);
+      return null;
     }
   }
 
-  function submitTest(){
-    console.log("=== Test topshirish boshlanmoqda ===");
-    
-    // Ochiq javoblarni yig'ish
+  async function submitTest(){
     collectOpenAnswers();
     
-    // Umumiy javoblarni tekshirish
     const totalAnswers = Object.keys(answers).length;
-    const closedAnswers = Object.keys(answers).filter(k => k <= numClosed).length;
-    const openAnswers = Object.keys(answers).filter(k => k > numClosed).length;
-    
-    console.log(`Javoblar: Yopiq=${closedAnswers}, Ochiq=${openAnswers}, Jami=${totalAnswers}`);
-    
     if(totalAnswers === 0){
-      alert("Hech qanday javob tanlanmagan! Iltimos, kamida bitta savolga javob bering.");
+      alert("Hech qanday javob tanlanmagan!");
       return;
     }
     
-    // Ogohlantirish
-    if(closedAnswers === 0){
-      if(!confirm("Hech qanday yopiq savolga javob bermagansiz. Davom ettirasizmi?")){
+    // Avval worker bilan aloqa tekshirish
+    const isWorkerAlive = await testWorkerConnection();
+    if (!isWorkerAlive) {
+      if (!confirm("Worker bilan aloqa muammosi. Davom ettirasizmi?\n(Javoblar lokal saqlanadi)")) {
         return;
       }
     }
     
-    // Saqlash va yuborish
+    // Javoblarni saqlash
     saveAnswers();
-    const submitted = sendAnswers();
     
-    if(submitted !== false){
-      // UI ni yangilash
+    // Worker ga yuborish
+    const result = await sendAnswers();
+    
+    if (result && result.success) {
+      // Muvaffaqiyatli yuborilganda
       document.getElementById('questionsContainer').style.display='none';
       document.querySelectorAll('.action-btn').forEach(b=>b.style.display='none');
       document.getElementById('submitInfo').style.display='block';
       
-      console.log("Test topshirildi:", answers);
+      // Ochiq javoblar saqlanganligini tekshirish
+      if (result.stats?.open > 0) {
+        console.log("Ochiq javoblar saqlandi:", result.stats.openAnswers);
+      }
+    } else {
+      // Xato bo'lsa, lokal saqlash
+      alert("Javoblar faqat lokal saqlandi. Keyinroq qayta urinib ko'ring.");
     }
   }
 
@@ -259,11 +271,10 @@
   document.addEventListener('DOMContentLoaded', function() {
     createQuestions();
     
-    // MathLive yuklanishini kutish
     setTimeout(() => {
       loadAnswers();
       
-      // Ochiq savollarga event listener qo'shish
+      // Ochiq savollarga event listener
       for(let i=numClosed+1;i<=numClosed+numOpen;i++){
         const mf = document.getElementById('answer-'+i);
         if(mf){
@@ -271,14 +282,19 @@
             collectOpenAnswers();
             saveAnswers();
           });
-          
-          mf.addEventListener('blur', function() {
-            collectOpenAnswers();
-            saveAnswers();
-          });
         }
       }
+      
+      // Worker bilan aloqa tekshirish
+      setTimeout(testWorkerConnection, 1000);
+      
     }, 500);
+  });
+
+  // Global error handler
+  window.addEventListener('error', function(event) {
+    console.error("Global error:", event.error);
+    updateStatus(`Global xato: ${event.message}`, true);
   });
 </script>
 </body>
