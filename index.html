@@ -1,61 +1,37 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <title>Telegram Mini App</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Telegram Mini App Test</title>
+
+  <!-- Telegram WebApp SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f2f2f2;
-      padding: 20px;
-    }
-    .box {
-      background: #fff;
-      padding: 20px;
-      border-radius: 12px;
-      max-width: 500px;
-      margin: auto;
-      text-align: center;
-    }
-    button {
-      padding: 14px 20px;
-      font-size: 18px;
-      border: none;
-      border-radius: 10px;
-      background: #2ecc71;
-      color: #fff;
-      cursor: pointer;
-    }
-  </style>
 </head>
 <body>
-<div class="box">
-  <h2>🧪 Mini App Test</h2>
-  <p>Quyidagi tugmani bosing</p>
-  <button onclick="submit()">📤 Yuborish</button>
-</div>
+  <h2>Mini App ishga tushdi ✅</h2>
+  <pre id="out"></pre>
 
-<script>
-  const tg = window.Telegram.WebApp;
-  tg.ready();
+  <script>
+    const tg = window.Telegram.WebApp;
 
-  function submit() {
-    if (!tg.initDataUnsafe || !tg.initDataUnsafe.user) {
-      alert("❌ Telegram user topilmadi");
-      return;
+    tg.ready();
+
+    console.log("INIT DATA STRING:");
+    console.log(tg.initData);
+
+    console.log("INIT DATA UNSAFE:");
+    console.log(tg.initDataUnsafe);
+
+    document.getElementById("out").innerText =
+      JSON.stringify(tg.initDataUnsafe, null, 2);
+
+    if (tg.initDataUnsafe?.user) {
+      console.log("USER ID:", tg.initDataUnsafe.user.id);
+      console.log("USERNAME:", tg.initDataUnsafe.user.username);
+    } else {
+      console.log("❌ USER YO'Q (menu button orqali ochilgan)");
     }
-
-    const payload = {
-      user_id: tg.initDataUnsafe.user.id,
-      answers: {1: "A", 2: "B", 3: "C"},
-      time: Date.now()
-    };
-
-    tg.sendData(JSON.stringify(payload)); // Ma'lumotni botga yuboradi
-    tg.close(); // Mini Appni yopadi
-  }
-</script>
+  </script>
 </body>
 </html>
