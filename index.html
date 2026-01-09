@@ -2,36 +2,41 @@
 <html lang="uz">
 <head>
   <meta charset="UTF-8" />
-  <title>Telegram Mini App</title>
+  <title>Mini App</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- Telegram WebApp SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
-  <h2>Mini App ishga tushdi ✅</h2>
-  <pre id="out"></pre>
 
-  <script>
-    const tg = window.Telegram.WebApp;
+<h2>Mini App ishga tushdi ✅</h2>
+<button id="send">📤 initData ni botga yuborish</button>
 
-    tg.ready();
+<pre id="out"></pre>
 
-    console.log("INIT DATA STRING:");
-    console.log(tg.initData);
+<script>
+  const tg = window.Telegram.WebApp;
+  tg.ready();
 
-    console.log("INIT DATA UNSAFE:");
-    console.log(tg.initDataUnsafe);
+  const initData = tg.initData;
+  const unsafe = tg.initDataUnsafe;
 
-    document.getElementById("out").innerText =
-      JSON.stringify(tg.initDataUnsafe, null, 2);
+  console.log("INIT DATA STRING:", initData);
+  console.log("INIT DATA UNSAFE:", unsafe);
 
-    if (tg.initDataUnsafe?.user) {
-      console.log("USER ID:", tg.initDataUnsafe.user.id);
-      console.log("USERNAME:", tg.initDataUnsafe.user.username);
-    } else {
-      console.log("❌ USER YO'Q (menu button orqali ochilgan)");
+  document.getElementById("out").innerText =
+    JSON.stringify(unsafe, null, 2);
+
+  document.getElementById("send").onclick = () => {
+    if (!initData) {
+      alert("❌ initData yo‘q (menu button orqali ochilgan)");
+      return;
     }
-  </script>
+
+    tg.sendData(initData); // 🔥 BOTGA YUBORILADI
+    tg.close();
+  };
+</script>
+
 </body>
 </html>
