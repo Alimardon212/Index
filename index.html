@@ -3,49 +3,120 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Javoblar - Test</title>
+  <title>Test Tizimi</title>
+  <!-- Telegram SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <!-- MathLive SDK (Matematik amallar uchun) -->
   <script defer src="https://cdn.jsdelivr.net/npm/mathlive"></script>
   <style>
-    body{margin:0;font-family:Arial,sans-serif;background:#f0f2f5;padding:10px;color:var(--tg-theme-text-color);}
-    .container{max-width:600px;margin:auto;background:white;padding:10px;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,0.1);}
-    .question{padding:12px;border-radius:8px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;font-size:16px;}
-    .question:nth-child(odd){background:#f9f9f9;}
-    .abcd-btn{padding:8px 12px;margin-left:5px;border:1px solid #ccc;border-radius:6px;cursor:pointer;font-weight:bold;background:#fff;}
-    .abcd-btn.selected{background:#3498db;color:white;border-color:#2980b9;}
-    math-field{width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;margin-top:8px;font-size:18px;background:white;}
-    .action-btn{padding:12px;margin-top:15px;width:48%;border:none;border-radius:8px;color:white;cursor:pointer;font-size:16px;font-weight:bold;}
-    .clear-btn{background:#e74c3c;}
-    .submit-btn{background:#2ecc71;}
-    .submit-btn:disabled{background:#ccc;}
-    #submitInfo{text-align:center;font-weight:bold;margin-top:20px;display:none;color:#27ae60;}
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f0f2f5;
+      padding: 10px;
+      color: var(--tg-theme-text-color, #000);
+    }
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: white;
+      padding: 15px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    h2 { text-align: center; color: #333; font-size: 20px; }
+    .question {
+      padding: 12px;
+      border-radius: 10px;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 16px;
+      border: 1px solid #eee;
+    }
+    .question:nth-child(odd) { background: #f9f9f9; }
+    .abcd-btn {
+      padding: 10px 14px;
+      margin-left: 5px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      background: #fff;
+      transition: 0.2s;
+    }
+    .abcd-btn.selected {
+      background: #3498db;
+      color: white;
+      border-color: #2980b9;
+    }
+    math-field {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      margin-top: 10px;
+      font-size: 20px;
+      background: #fff;
+    }
+    .action-btn {
+      padding: 14px;
+      margin-top: 20px;
+      width: 48%;
+      border: none;
+      border-radius: 10px;
+      color: white;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+    }
+    .clear-btn { background: #e74c3c; }
+    .submit-btn { background: #2ecc71; }
+    .submit-btn:disabled { background: #ccc; cursor: not-allowed; }
+    #submitInfo {
+      text-align: center;
+      font-weight: bold;
+      margin-top: 25px;
+      display: none;
+      color: #27ae60;
+      font-size: 18px;
+    }
   </style>
 </head>
 <body>
+
 <div class="container">
+  <h2 id="title">Savollarga javob bering</h2>
   <div id="questionsContainer"></div>
+  
   <div style="display:flex;justify-content:space-between;">
     <button class="action-btn clear-btn" onclick="clearAll()">♻️ Tozalash</button>
     <button id="submitBtn" class="action-btn submit-btn" onclick="submitTest()">📤 Topshirish</button>
   </div>
-  <div id="submitInfo">✅ Test yuborildi!</div>
+  
+  <div id="submitInfo">✅ Test muvaffaqiyatli topshirildi!</div>
 </div>
 
 <script>
+  // Telegram WebApp sozlamalari
   const tg = window.Telegram.WebApp;
   tg.ready();
   tg.expand();
 
-  let answers = {};
-  const numClosed = 3;
-  const numOpen = 2;
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxDClCkFKKHikpGR5kYrkqmzPPRK7s06f8C9QUMfKihufFxyxHLbGx-dhkZjZyZLHHW/exec"; // <--- Google Script URL
+  // SOZLAMALAR
+  const numClosed = 3;  // Yopiq savollar soni
+  const numOpen = 2;    // Ochiq savollar soni
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxDClCkFKKHikpGR5kYrkqmzPPRK7s06f8C9QUMfKihufFxyxHLbGx-dhkZjZyZLHHW/exec"; // <--- Google Script URL ni shu yerga qo'ying
 
+  let answers = {};
+
+  // 1. Savollarni yaratish funksiyasi
   function createQuestions() {
     const container = document.getElementById('questionsContainer');
     container.innerHTML = '';
 
-    // 1. Yopiq savollar
+    // Yopiq savollar (A, B, C, D)
     for (let i = 1; i <= numClosed; i++) {
       const q = document.createElement('div');
       q.className = 'question';
@@ -60,17 +131,19 @@
       container.appendChild(q);
     }
 
-    // 2. Ochiq savollar
+    // Ochiq savollar (Math-field)
     for (let i = numClosed + 1; i <= numClosed + numOpen; i++) {
       const q = document.createElement('div');
       q.className = 'question';
       q.style.flexDirection = 'column';
       q.style.alignItems = 'flex-start';
-      q.innerHTML = `<div><b>${i}. Ochiq savol (javobni yozing):</b></div>
-        <math-field id="answer-${i}" virtual-keyboard-mode="onfocus"></math-field>`;
+      q.innerHTML = `
+        <div><b>${i}. Ochiq savol (javobni yozing):</b></div>
+        <math-field id="answer-${i}" virtual-keyboard-mode="onfocus"></math-field>
+      `;
       container.appendChild(q);
 
-      // MathLive input hodisasi
+      // Math-field uchun qiymatni saqlash
       const mf = document.getElementById(`answer-${i}`);
       mf.addEventListener('input', (ev) => {
         answers[i] = ev.target.value; 
@@ -79,19 +152,39 @@
     }
   }
 
+  // 2. Yopiq savol javobini tanlash
   function selectAnswer(qNum, ans, btn) {
     answers[qNum] = ans;
+    // Tugma rangini o'zgartirish
     btn.parentElement.querySelectorAll('.abcd-btn').forEach(b => b.classList.remove('selected'));
     btn.classList.add('selected');
     saveAnswers();
   }
 
-  function saveAnswers() { localStorage.setItem('testAnswers', JSON.stringify(answers)); }
+  // 3. Xotiraga vaqtincha saqlash
+  function saveAnswers() {
+    localStorage.setItem('testAnswers', JSON.stringify(answers));
+  }
 
+  // 4. Testni topshirish
   async function submitTest() {
     const user = tg.initDataUnsafe.user;
-    if (!user) { alert("Telegram orqali oching!"); return; }
-    if (Object.keys(answers).length === 0) { alert("Javoblar belgilanmagan!"); return; }
+    if (!user) { alert("Ilovani Telegram orqali oching!"); return; }
+
+    const totalQuestions = numClosed + numOpen;
+    let finalAnswers = {};
+    let answeredCount = 0;
+
+    // Faqat joriy savollar soniga mos javoblarni filtrlash
+    for (let i = 1; i <= totalQuestions; i++) {
+      finalAnswers[i] = answers[i] || "";
+      if (finalAnswers[i] !== "") answeredCount++;
+    }
+
+    if (answeredCount === 0) {
+      alert("Hech bo'lmasa bitta javobni belgilang!");
+      return;
+    }
 
     const btn = document.getElementById('submitBtn');
     btn.disabled = true;
@@ -100,55 +193,53 @@
     const payload = {
       userId: user.id,
       fullName: user.first_name + (user.last_name ? " " + user.last_name : ""),
-      answers: answers
+      answers: finalAnswers
     };
 
     try {
+      // Google Sheets-ga yuborish
       await fetch(SCRIPT_URL, {
         method: 'POST',
         mode: 'no-cors',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-      
-      document.getElementById('questionsContainer').style.display='none';
-      document.querySelectorAll('.action-btn').forEach(b=>b.style.display='none');
-      document.getElementById('submitInfo').style.display='block';
-      
+
+      // Muvaffaqiyatli bo'lgach
+      localStorage.removeItem('testAnswers');
+      document.getElementById('questionsContainer').style.display = 'none';
+      document.getElementById('title').style.display = 'none';
+      document.querySelectorAll('.action-btn').forEach(b => b.style.display = 'none');
+      document.getElementById('submitInfo').style.display = 'block';
+
+      // 2.5 soniyadan keyin yopish
       setTimeout(() => { tg.close(); }, 2500);
+
     } catch (e) {
-      alert("Xatolik: " + e);
+      alert("Xatolik yuz berdi: " + e);
       btn.disabled = false;
       btn.innerText = "📤 Topshirish";
     }
   }
 
-  function loadAnswers() {
-    const saved = localStorage.getItem('testAnswers');
-    if (saved) {
-      answers = JSON.parse(saved);
-      for (let i = 1; i <= numClosed; i++) {
-        if (answers[i]) {
-          const btns = document.querySelectorAll(`#questionsContainer .question:nth-child(${i}) .abcd-btn`);
-          btns.forEach(b => { if (b.textContent === answers[i]) b.classList.add('selected'); });
-        }
-      }
-      for (let i = numClosed + 1; i <= numClosed + numOpen; i++) {
-        const mf = document.getElementById('answer-' + i);
-        if (mf && answers[i]) mf.value = answers[i];
-      }
-    }
-  }
-
+  // 5. Tozalash funksiyasi
   function clearAll() {
-    if(confirm("Barcha javoblarni o'chirmoqchimisiz?")) {
+    if (confirm("Barcha javoblarni o'chirib, boshidan boshlaysizmi?")) {
       localStorage.removeItem('testAnswers');
       location.reload();
     }
   }
 
-  window.onload = () => { createQuestions(); loadAnswers(); };
+  // 6. Ilova ochilganda ishlaydigan qism
+  window.onload = function() {
+    // Har gal kirganda eski xotirani tozalash (Siz so'ragan usul)
+    localStorage.removeItem('testAnswers');
+    answers = {};
+    
+    // Savollarni qurish
+    createQuestions();
+  };
 </script>
+
 </body>
 </html>
-
