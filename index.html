@@ -3,765 +3,118 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Matematika Testi</title>
+  <title>Javoblar</title>
   <script defer src="https://cdn.jsdelivr.net/npm/mathlive"></script>
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <style>
-    * {
-      box-sizing: border-box;
-    }
-    
-    body {
-      margin: 0;
-      padding: 10px;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
-    }
-    
-    .container {
-      max-width: 100%;
-      background: white;
-      border-radius: 15px;
-      padding: 20px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-      margin-bottom: 20px;
-    }
-    
-    .header {
-      text-align: center;
-      margin-bottom: 20px;
-      padding-bottom: 15px;
-      border-bottom: 2px solid #f0f0f0;
-    }
-    
-    .header h1 {
-      margin: 0 0 5px 0;
-      color: #2c3e50;
-    }
-    
-    .header p {
-      margin: 0;
-      color: #7f8c8d;
-      font-size: 14px;
-    }
-    
-    .question {
-      background: #f8f9fa;
-      border-radius: 10px;
-      padding: 15px;
-      margin-bottom: 10px;
-      border: 1px solid #e9ecef;
-      transition: all 0.3s ease;
-    }
-    
-    .question:hover {
-      background: #e9ecef;
-      transform: translateY(-2px);
-    }
-    
-    .question-number {
-      font-weight: bold;
-      color: #3498db;
-      font-size: 18px;
-      margin-bottom: 10px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    
-    .abcd-options {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-      margin-top: 10px;
-    }
-    
-    @media (min-width: 480px) {
-      .abcd-options {
-        grid-template-columns: repeat(4, 1fr);
-      }
-    }
-    
-    .abcd-btn {
-      padding: 12px 5px;
-      border: 2px solid #ddd;
-      border-radius: 8px;
-      background: white;
-      cursor: pointer;
-      font-weight: bold;
-      font-size: 16px;
-      text-align: center;
-      transition: all 0.2s;
-    }
-    
-    .abcd-btn:hover {
-      border-color: #3498db;
-      background: #f8f9fa;
-    }
-    
-    .abcd-btn.selected {
-      background: #3498db;
-      color: white;
-      border-color: #2980b9;
-      transform: scale(1.05);
-    }
-    
-    math-field {
-      width: 100%;
-      padding: 12px;
-      border: 2px solid #ddd;
-      border-radius: 8px;
-      font-size: 16px;
-      margin-top: 10px;
-      background: white;
-    }
-    
-    math-field:focus {
-      border-color: #3498db;
-      outline: none;
-    }
-    
-    .controls {
-      display: flex;
-      gap: 10px;
-      margin-top: 30px;
-      flex-wrap: wrap;
-    }
-    
-    .action-btn {
-      flex: 1;
-      min-width: 140px;
-      padding: 15px;
-      border: none;
-      border-radius: 10px;
-      color: white;
-      cursor: pointer;
-      font-size: 16px;
-      font-weight: bold;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      transition: all 0.3s;
-    }
-    
-    .clear-btn {
-      background: linear-gradient(to right, #ff416c, #ff4b2b);
-    }
-    
-    .submit-btn {
-      background: linear-gradient(to right, #00b09b, #96c93d);
-    }
-    
-    .action-btn:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-    }
-    
-    .action-btn:active {
-      transform: translateY(-1px);
-    }
-    
-    .stats {
-      background: #e3f2fd;
-      border-radius: 10px;
-      padding: 15px;
-      margin-top: 20px;
-      text-align: center;
-      font-size: 14px;
-      color: #1565c0;
-      display: none;
-    }
-    
-    .loader {
-      display: none;
-      text-align: center;
-      padding: 20px;
-    }
-    
-    .spinner {
-      border: 4px solid #f3f3f3;
-      border-top: 4px solid #3498db;
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      animation: spin 1s linear infinite;
-      margin: 0 auto 10px;
-    }
-    
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    
-    .result {
-      display: none;
-      text-align: center;
-      padding: 30px;
-      background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-      border-radius: 15px;
-      margin-top: 20px;
-      color: white;
-    }
-    
-    .result-icon {
-      font-size: 50px;
-      margin-bottom: 15px;
-    }
-    
-    .error {
-      display: none;
-      background: #ffebee;
-      border: 1px solid #ffcdd2;
-      color: #c62828;
-      padding: 15px;
-      border-radius: 10px;
-      margin-top: 15px;
-      text-align: center;
-    }
-    
-    .user-info {
-      background: #fff3e0;
-      border-radius: 10px;
-      padding: 12px;
-      margin-bottom: 15px;
-      font-size: 14px;
-      color: #e65100;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    
-    .user-icon {
-      font-size: 20px;
-    }
-    
-    .question-type {
-      font-size: 12px;
-      color: #7f8c8d;
-      background: white;
-      padding: 3px 8px;
-      border-radius: 12px;
-      border: 1px solid #ddd;
-    }
+    body{margin:0;font-family:Arial,sans-serif;background:#f0f2f5;padding:5px;}
+    .container{max-width:600px;margin:auto;background:white;padding:5px;border-radius:10px;}
+    .question{padding:8px;border-radius:5px;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center;font-size:16px;}
+    .question:nth-child(odd){background:#e8e8e8;}
+    .question:nth-child(even){background:#fff;}
+    .abcd-btn{padding:5px 8px;margin-left:4px;border:1px solid #ccc;border-radius:5px;cursor:pointer;font-weight:bold;font-size:14px;}
+    .abcd-btn.selected{background:#3498db;color:white;border-color:#2980b9;}
+    math-field{width:99%;padding:5px;border:1px solid #ccc;border-radius:5px;margin-top:5px;font-size:16px;}
+    .open-math{font-size:14px;padding:4px;}
+    .action-btn{padding:10px;margin-top:10px;width:48%;border:none;border-radius:5px;color:white;cursor:pointer;font-size:16px;}
+    .clear-btn{background:#e74c3c;margin-right:4%;}
+    .submit-btn{background:#2ecc71;}
+    #submitInfo{text-align:center;font-weight:bold;margin-top:15px;display:none;color:#27ae60;font-size:16px;}
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <h1>📚 Matematika Testi</h1>
-      <p>Savollarga javob bering va "Topshirish" tugmasi orqali yuboring</p>
-    </div>
-    
-    <div class="user-info" id="userInfo">
-      <span class="user-icon">👤</span>
-      <span id="userText">Foydalanuvchi yuklanmoqda...</span>
-    </div>
-    
-    <div id="questionsContainer"></div>
-    
-    <div class="stats" id="stats">
-      <span id="answeredCount">0</span> ta savolga javob berildi |
-      <span id="totalCount">0</span> ta savol
-    </div>
-    
-    <div class="controls">
-      <button class="action-btn clear-btn" onclick="clearAll()">
-        <span style="font-size: 20px;">♻️</span> Tozalash
-      </button>
-      <button class="action-btn submit-btn" onclick="submitToSupabase()">
-        <span style="font-size: 20px;">📤</span> Topshirish
-      </button>
-    </div>
-    
-    <div class="loader" id="loader">
-      <div class="spinner"></div>
-      <p>Javoblar saqlanmoqda...</p>
-    </div>
-    
-    <div class="error" id="errorMsg"></div>
-    
-    <div class="result" id="result">
-      <div class="result-icon">✅</div>
-      <h2>Test topshirildi!</h2>
-      <p><strong id="resultCount">0</strong> ta savolga javob berdingiz</p>
-      <p>Natijalarni @TestResultBot orqali ko'rishingiz mumkin</p>
-      <p style="font-size: 12px; margin-top: 15px; opacity: 0.8;">
-        ID: <span id="resultId">-</span>
-      </p>
-    </div>
+<div class="container">
+  <div id="questionsContainer"></div>
+  <div style="display:flex;justify-content:space-between;">
+    <button class="action-btn clear-btn" onclick="clearAll()">♻️ Tozalash</button>
+    <button class="action-btn submit-btn" onclick="submitTest()">📤 Topshirish</button>
   </div>
+  <div id="submitInfo">✅ Test topshirildi</div>
+</div>
 
 <script>
-  // ================== SUPABASE KONFIGURATSIYA ==================
-  const SUPABASE_URL = 'https://uoezkqtjraibytzdnoiu.supabase.co';
-  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVvZXprcXRqcmFpYnl0emRub2l1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc3OTg4NDAsImV4cCI6MjA4MzM3NDg0MH0.-DfYiPSelF-iFOQbCQMcx5RzOP1K90zPDCzS-Q6ugvg';
-  
-  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-  
-  let answers = {};
-  let telegramUserId = null;
-  let testId = 'default_test';
-  let numClosed = 30;
-  let numOpen = 5;
-  let telegramUser = null;
-  
-  // ================== TELEGRAM INITDATA PARSE QILISH ==================
-  function parseTelegramInitData() {
-    console.log("🔍 Telegram initData ni parse qilish boshlandi...");
-    
-    // 1. Birinchi usul: Telegram.WebApp.initData
-    if (window.Telegram && Telegram.WebApp) {
-      console.log("📱 Telegram WebApp obyekti mavjud");
-      
-      Telegram.WebApp.ready();
-      Telegram.WebApp.expand();
-      
-      // initData stringini olish
-      const initDataString = Telegram.WebApp.initData;
-      console.log("initData string uzunligi:", initDataString?.length || 0);
-      
-      if (initDataString) {
-        // initData ni parse qilish
-        const params = new URLSearchParams(initDataString);
-        const userParam = params.get('user');
-        
-        if (userParam) {
-          try {
-            telegramUser = JSON.parse(decodeURIComponent(userParam));
-            telegramUserId = telegramUser.id;
-            console.log("✅ initData dan user topildi:", telegramUser);
-            return true;
-          } catch (e) {
-            console.error("initData parse xatosi:", e);
-          }
-        } else {
-          console.warn("initData da user parametri yo'q");
-        }
-      } else {
-        console.warn("Telegram.WebApp.initData bo'sh");
-      }
-      
-      // 2. Ikkinchi usul: Telegram.WebApp.initDataUnsafe
-      const initDataUnsafe = Telegram.WebApp.initDataUnsafe || {};
-      console.log("initDataUnsafe:", initDataUnsafe);
-      
-      if (initDataUnsafe.user) {
-        telegramUser = initDataUnsafe.user;
-        telegramUserId = telegramUser.id;
-        console.log("✅ initDataUnsafe dan user topildi:", telegramUser);
-        return true;
-      }
-    }
-    
-    // 3. Uchinchi usul: URL hash (#) qismidan
-    const hash = window.location.hash.substring(1);
-    console.log("URL hash:", hash);
-    
-    if (hash) {
-      const params = new URLSearchParams(hash);
-      const userParam = params.get('user');
-      
-      if (userParam) {
-        try {
-          telegramUser = JSON.parse(decodeURIComponent(userParam));
-          telegramUserId = telegramUser.id;
-          console.log("✅ URL hash dan user topildi:", telegramUser);
-          return true;
-        } catch (e) {
-          console.error("URL hash parse xatosi:", e);
-        }
-      }
-      
-      // Telegram formatida: #tgWebAppData=...
-      const webAppData = params.get('tgWebAppData');
-      if (webAppData) {
-        const dataParams = new URLSearchParams(webAppData);
-        const userParam = dataParams.get('user');
-        
-        if (userParam) {
-          try {
-            telegramUser = JSON.parse(decodeURIComponent(userParam));
-            telegramUserId = telegramUser.id;
-            console.log("✅ tgWebAppData dan user topildi:", telegramUser);
-            return true;
-          } catch (e) {
-            console.error("tgWebAppData parse xatosi:", e);
-          }
-        }
-      }
-    }
-    
-    // 4. To'rtinchi usul: URL query parametrlaridan
-    const urlParams = new URLSearchParams(window.location.search);
-    const userIdFromUrl = urlParams.get('user_id');
-    const userFromUrl = urlParams.get('user');
-    
-    if (userIdFromUrl) {
-      telegramUserId = userIdFromUrl;
-      telegramUser = {
-        id: parseInt(userIdFromUrl),
-        first_name: urlParams.get('first_name') || 'Foydalanuvchi',
-        last_name: urlParams.get('last_name') || '',
-        username: urlParams.get('username') || 'user'
-      };
-      console.log("✅ URL dan user_id topildi:", telegramUser);
-      return true;
-    }
-    
-    if (userFromUrl) {
-      try {
-        telegramUser = JSON.parse(decodeURIComponent(userFromUrl));
-        telegramUserId = telegramUser.id;
-        console.log("✅ URL query dan user topildi:", telegramUser);
-        return true;
-      } catch (e) {
-        console.error("URL query parse xatosi:", e);
-      }
-    }
-    
-    console.error("❌ Hech qanday usul bilan user ma'lumotlari topilmadi");
-    return false;
-  }
-  
-  // ================== SAVOLLARNI YARATISH ==================
-  function createQuestions() {
-    const container = document.getElementById('questionsContainer');
-    container.innerHTML = '';
-    
-    // URL parametrlarini olish
-    const urlParams = new URLSearchParams(window.location.search);
-    testId = urlParams.get('test_id') || 'math_test_001';
-    numClosed = parseInt(urlParams.get('closed')) || 30;
-    numOpen = parseInt(urlParams.get('open')) || 5;
-    
-    console.log("📝 Test konfiguratsiyasi:", { numClosed, numOpen, testId });
-    
-    // Yopiq savollar (ABCD)
-    for (let i = 1; i <= numClosed; i++) {
-      const q = document.createElement('div');
-      q.className = 'question';
-      q.innerHTML = `
-        <div class="question-number">
-          <span>${i}. Savol</span>
-          <span class="question-type">Yopiq</span>
-        </div>
-        <div class="abcd-options">
+  let answers={};
+
+  // admin botdan oladi:
+  const numClosed = 30; // yopiq savollar soni (botdan olindi)
+  const numOpen = 5;    // ochiq savollar soni (botdan olindi)
+
+  function createQuestions(){
+    const container=document.getElementById('questionsContainer');
+    container.innerHTML='';
+
+    // yopiq savollar
+    for(let i=1;i<=numClosed;i++){
+      const q=document.createElement('div');
+      q.className='question';
+      q.innerHTML=`
+        <div>${i}.</div>
+        <div>
           <button class="abcd-btn" onclick="selectAnswer(${i},'A',this)">A</button>
           <button class="abcd-btn" onclick="selectAnswer(${i},'B',this)">B</button>
           <button class="abcd-btn" onclick="selectAnswer(${i},'C',this)">C</button>
           <button class="abcd-btn" onclick="selectAnswer(${i},'D',this)">D</button>
-        </div>
-      `;
+        </div>`;
       container.appendChild(q);
     }
-    
-    // Ochiq savollar (matematik formula)
-    for (let i = numClosed + 1; i <= numClosed + numOpen; i++) {
-      const q = document.createElement('div');
-      q.className = 'question';
-      q.innerHTML = `
-        <div class="question-number">
-          <span>${i}. Savol</span>
-          <span class="question-type">Matematik</span>
-        </div>
-        <p style="margin: 10px 0; color: #666;">Matematik javobingizni kiriting:</p>
-        <math-field id="answer-${i}" 
-          virtual-keyboard-mode="manual"
-          oninput="updateOpenAnswer(${i}, this.getValue('text'))"
-          placeholder="Masalan: \\frac{1}{2} yoki x^2+3">
-        </math-field>
-      `;
+
+    // ochiq savollar
+    for(let i=numClosed+1;i<=numClosed+numOpen;i++){
+      const q=document.createElement('div');
+      q.className='question';
+      q.style.flexDirection='column';
+      q.style.alignItems='flex-start';
+      q.style.background = (i%2===1)? '#e8e8e8' : '#fff';
+      q.innerHTML=`<div>${i}.</div>
+        <math-field id="answer-${i}" class="open-math" virtual-keyboard-mode="onfocus"
+        oninput="updateOpenAnswer(${i}, this.getValue('text'))"></math-field>`;
       container.appendChild(q);
     }
-    
-    // Statistikani yangilash
-    updateStats();
   }
-  
-  // ================== JAVOB FUNKSIYALARI ==================
-  function selectAnswer(qNum, ans, btn) {
-    answers[qNum] = ans;
-    
-    // Barcha tugmalardan selected klassini olib tashlash
-    const questionDiv = btn.closest('.question');
-    questionDiv.querySelectorAll('.abcd-btn').forEach(b => {
-      b.classList.remove('selected');
-    });
-    
-    // Tanlangan tugmaga selected klassini qo'shish
+
+  function selectAnswer(qNum,ans,btn){
+    answers[qNum]=ans;
+    btn.parentElement.querySelectorAll('.abcd-btn').forEach(b=>b.classList.remove('selected'));
     btn.classList.add('selected');
-    updateStats();
+    saveAnswers();
   }
-  
-  function updateOpenAnswer(qNum, val) {
-    answers[qNum] = val.trim();
-    updateStats();
-  }
-  
-  // ================== STATISTIKA ==================
-  function updateStats() {
-    const answered = Object.keys(answers).length;
-    const total = numClosed + numOpen;
-    
-    document.getElementById('answeredCount').textContent = answered;
-    document.getElementById('totalCount').textContent = total;
-    document.getElementById('stats').style.display = answered > 0 ? 'block' : 'none';
-    
-    // Progress bar effect
-    const progress = (answered / total) * 100;
-    document.getElementById('stats').style.background = 
-      `linear-gradient(90deg, #e3f2fd 0%, #e3f2fd ${progress}%, #ffffff ${progress}%)`;
-  }
-  
-  // ================== TOZALASH ==================
-  function clearAll() {
-    if (Object.keys(answers).length === 0) {
-      showError("Tozalash uchun javoblar mavjud emas!");
-      return;
+
+  function updateOpenAnswer(qNum,val){ answers[qNum]=val; saveAnswers(); }
+
+  function clearAll(){
+    answers={};
+    document.querySelectorAll('.abcd-btn').forEach(b=>b.classList.remove('selected'));
+    for(let i=numClosed+1;i<=numClosed+numOpen;i++){
+      document.getElementById('answer-'+i).setValue('',{format:'text'});
     }
-    
-    if (confirm(`${Object.keys(answers).length} ta javobni tozalashni istaysizmi?`)) {
-      answers = {};
-      
-      // ABCD tugmalarini tozalash
-      document.querySelectorAll('.abcd-btn').forEach(btn => {
-        btn.classList.remove('selected');
-      });
-      
-      // Matematik formulalarni tozalash
-      document.querySelectorAll('math-field').forEach(mf => {
-        mf.setValue('', { format: 'text' });
-      });
-      
-      // UI ni yangilash
-      document.getElementById('errorMsg').style.display = 'none';
-      document.getElementById('result').style.display = 'none';
-      updateStats();
-      
-      showMessage("✅ Barcha javoblar tozalandi!", "success");
+    localStorage.removeItem('testAnswers');
+    document.getElementById('submitInfo').style.display='none';
+  }
+
+  function submitTest(){
+    if(Object.keys(answers).length===0){ alert("Hech qanday javob tanlanmagan!"); return; }
+    document.getElementById('questionsContainer').style.display='none';
+    document.querySelectorAll('.action-btn').forEach(b=>b.style.display='none');
+    document.getElementById('submitInfo').style.display='block';
+    console.log("Topshirilgan javoblar:",answers);
+  }
+
+  function saveAnswers(){ localStorage.setItem('testAnswers',JSON.stringify(answers)); }
+
+  function loadAnswers(){
+    const saved=localStorage.getItem('testAnswers');
+    if(saved){ answers=JSON.parse(saved);
+      for(let i=1;i<=numClosed;i++){ if(answers[i]){
+        document.querySelectorAll(`#questionsContainer .question:nth-child(${i}) .abcd-btn`).forEach(b=>{
+          if(b.textContent===answers[i]) b.classList.add('selected');
+        });
+      }}
+      for(let i=numClosed+1;i<=numClosed+numOpen;i++){ if(answers[i])
+        document.getElementById('answer-'+i).setValue(answers[i],{format:'text'});
+      }
     }
   }
-  
-  // ================== SUPABASE GA SAQLASH ==================
-  async function submitToSupabase() {
-    // 1. Tekshirishlar
-    const answeredCount = Object.keys(answers).length;
-    if (answeredCount === 0) {
-      showError("❌ Iltimos, kamida bitta savolga javob bering!");
-      return;
-    }
-    
-    // 2. Telegram user ID ni aniqlash
-    if (!telegramUserId) {
-      showError("❌ Foydalanuvchi aniqlanmadi! Bot orqali kirishni urinib ko'ring.");
-      return;
-    }
-    
-    // 3. Loaderni ko'rsatish
-    showLoader(true);
-    hideError();
-    
-    try {
-      console.log("📤 Supabase ga yuborilmoqda...", {
-        telegram_id: telegramUserId,
-        test_id: testId,
-        answers_count: answeredCount,
-        user: telegramUser
-      });
-      
-      // 4. Supabase ga saqlash
-      const { data, error } = await supabase
-        .from('test_results')
-        .insert([
-          {
-            telegram_id: telegramUserId,
-            test_id: testId,
-            answers: answers,
-            user_info: telegramUser || {},
-            submitted_at: new Date().toISOString()
-          }
-        ])
-        .select();
-      
-      if (error) {
-        throw error;
-      }
-      
-      // 5. Muvaffaqqiyatli saqlandi
-      console.log("✅ Muvaffaqqiyatli saqlandi:", data);
-      
-      // 6. Natijani ko'rsatish
-      showResult(data[0]);
-      
-      // 7. Tugmalarni yashirish
-      document.querySelectorAll('.action-btn').forEach(btn => {
-        btn.style.display = 'none';
-      });
-      
-      // 8. Telegram botga ma'lumot yuborish (agar mavjud bo'lsa)
-      if (window.Telegram && Telegram.WebApp) {
-        try {
-          Telegram.WebApp.sendData(JSON.stringify({
-            test_id: testId,
-            answers_count: answeredCount,
-            user_id: telegramUserId
-          }));
-          
-          // 3 soniyadan so'ng Mini App ni yopish
-          setTimeout(() => {
-            Telegram.WebApp.close();
-          }, 3000);
-          
-        } catch (telegramError) {
-          console.warn("⚠️ Telegram botga yuborishda xatolik:", telegramError);
-        }
-      }
-      
-    } catch (error) {
-      // 9. Xatolik bo'lsa
-      console.error("❌ Supabase xatosi:", error);
-      showError(`❌ Saqlashda xatolik: ${error.message || 'Noma\'lum xatolik'}`);
-    } finally {
-      // 10. Loaderni yashirish
-      showLoader(false);
-    }
-  }
-  
-  // ================== YORDAMCHI FUNKSIYALAR ==================
-  function showLoader(show) {
-    document.getElementById('loader').style.display = show ? 'block' : 'none';
-  }
-  
-  function showError(message) {
-    const errorDiv = document.getElementById('errorMsg');
-    errorDiv.innerHTML = `<strong>⚠️ Xatolik:</strong> ${message}`;
-    errorDiv.style.display = 'block';
-    
-    // 5 soniyadan so'ng yashirish
-    setTimeout(hideError, 5000);
-  }
-  
-  function hideError() {
-    document.getElementById('errorMsg').style.display = 'none';
-  }
-  
-  function showMessage(message, type = 'info') {
-    // Temporary message
-    const tempDiv = document.createElement('div');
-    tempDiv.style.cssText = `
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background: ${type === 'success' ? '#4CAF50' : '#2196F3'};
-      color: white;
-      padding: 15px 20px;
-      border-radius: 10px;
-      z-index: 1000;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-      animation: slideIn 0.3s ease;
-    `;
-    
-    tempDiv.textContent = message;
-    document.body.appendChild(tempDiv);
-    
-    setTimeout(() => {
-      tempDiv.style.animation = 'slideOut 0.3s ease';
-      setTimeout(() => tempDiv.remove(), 300);
-    }, 3000);
-  }
-  
-  function showResult(resultData) {
-    const answeredCount = Object.keys(answers).length;
-    
-    document.getElementById('resultCount').textContent = answeredCount;
-    document.getElementById('resultId').textContent = resultData.id || 'N/A';
-    document.getElementById('result').style.display = 'block';
-    
-    // Animatsiya
-    const resultDiv = document.getElementById('result');
-    resultDiv.style.transform = 'scale(0.9)';
-    setTimeout(() => {
-      resultDiv.style.transition = 'transform 0.3s ease';
-      resultDiv.style.transform = 'scale(1)';
-    }, 100);
-  }
-  
-  // ================== FOYDALANUVCHI MA'LUMOTLARINI KO'RSATISH ==================
-  function displayUserInfo() {
-    if (telegramUser) {
-      const fullName = `${telegramUser.first_name || ''} ${telegramUser.last_name || ''}`.trim();
-      const username = telegramUser.username ? `@${telegramUser.username}` : '';
-      
-      document.getElementById('userText').innerHTML = 
-        `${fullName || 'Foydalanuvchi'} ${username ? `(${username})` : ''}`;
-      console.log("✅ Foydalanuvchi ma'lumotlari ko'rsatildi:", telegramUser);
-    } else if (telegramUserId) {
-      document.getElementById('userText').innerHTML = 
-        `Foydalanuvchi ID: ${telegramUserId}`;
-      console.log("✅ Faqat user_id ko'rsatildi:", telegramUserId);
-    } else {
-      document.getElementById('userText').innerHTML = 
-        "❌ Foydalanuvchi aniqlanmadi. Bot orqali kirishni tekshiring.";
-      console.warn("⚠️ Foydalanuvchi ma'lumotlari yo'q");
-    }
-  }
-  
-  // ================== DASTURNI BOSHLASH ==================
-  window.onload = function() {
-    console.log("🚀 Mini App yuklanmoqda...");
-    console.log("URL:", window.location.href);
-    console.log("Telegram obyekti mavjudmi?", !!window.Telegram);
-    
-    // CSS animatsiyalari
-    const style = document.createElement('style');
-    style.textContent = `
-      @keyframes slideIn {
-        from { transform: translateX(100%); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
-      }
-      @keyframes slideOut {
-        from { transform: translateX(0); opacity: 1; }
-        to { transform: translateX(100%); opacity: 0; }
-      }
-    `;
-    document.head.appendChild(style);
-    
-    // 1. Telegram ma'lumotlarini parse qilish
-    const userFound = parseTelegramInitData();
-    
-    // 2. Foydalanuvchi ma'lumotlarini ko'rsatish
-    displayUserInfo();
-    
-    // 3. Savollarni yaratish
-    createQuestions();
-    
-    // 4. Klaviatura kombinatsiyalari
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        clearAll();
-      }
-      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-        submitToSupabase();
-      }
-    });
-    
-    // 5. Internet holatini kuzatish
-    window.addEventListener('online', () => {
-      showMessage("🌐 Internet ulandi", "success");
-    });
-    
-    window.addEventListener('offline', () => {
-      showError("🌐 Internet uzildi! Javoblarni saqlab bo'lmaydi");
-    });
-    
-    console.log("✅ Mini App tayyor! User topildimi?", userFound);
-    console.log("Telegram User:", telegramUser);
-    console.log("Telegram User ID:", telegramUserId);
-  };
+
+  window.onload=function(){ createQuestions(); loadAnswers(); }
 </script>
 </body>
 </html>
-
-
