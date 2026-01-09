@@ -307,64 +307,122 @@
   let numOpen = 5;
   let telegramUser = null;
   
-  // ================== TELEGRAM WEBAPP NI ISHGA TUSHIRISH ==================
-  function initTelegramWebApp() {
-    if (window.Telegram && window.Telegram.WebApp) {
-      console.log("📱 Telegram WebApp mavjud!");
+  // ================== TELEGRAM INITDATA PARSE QILISH ==================
+  function parseTelegramInitData() {
+    console.log("🔍 Telegram initData ni parse qilish boshlandi...");
+    
+    // 1. Birinchi usul: Telegram.WebApp.initData
+    if (window.Telegram && Telegram.WebApp) {
+      console.log("📱 Telegram WebApp obyekti mavjud");
       
-      // Telegram WebApp ni ishga tushirish
       Telegram.WebApp.ready();
-      
-      // Mini App ni to'liq ekranga kengaytirish
       Telegram.WebApp.expand();
       
-      // Foydalanuvchi ma'lumotlarini olish
-      const initData = Telegram.WebApp.initData || '';
-      const initDataUnsafe = Telegram.WebApp.initDataUnsafe || {};
+      // initData stringini olish
+      const initDataString = Telegram.WebApp.initData;
+      console.log("initData string uzunligi:", initDataString?.length || 0);
       
-      telegramUser = initDataUnsafe.user;
-      
-      console.log("📊 Telegram ma'lumotlari:", {
-        initData: initData ? "Mavjud" : "Yo'q",
-        user: telegramUser,
-        platform: Telegram.WebApp.platform,
-        version: Telegram.WebApp.version
-      });
-      
-      // Agar foydalanuvchi ma'lumotlari mavjud bo'lsa
-      if (telegramUser) {
-        telegramUserId = telegramUser.id;
+      if (initDataString) {
+        // initData ni parse qilish
+        const params = new URLSearchParams(initDataString);
+        const userParam = params.get('user');
         
-        // UI ga foydalanuvchi ma'lumotlarini chiqarish
-        document.getElementById('userText').innerHTML = 
-          `${telegramUser.first_name || 'Foydalanuvchi'} ${telegramUser.last_name || ''} (@${telegramUser.username || 'user'})`;
-        
-        console.log("✅ Foydalanuvchi aniqlandi:", telegramUserId);
+        if (userParam) {
+          try {
+            telegramUser = JSON.parse(decodeURIComponent(userParam));
+            telegramUserId = telegramUser.id;
+            console.log("✅ initData dan user topildi:", telegramUser);
+            return true;
+          } catch (e) {
+            console.error("initData parse xatosi:", e);
+          }
+        } else {
+          console.warn("initData da user parametri yo'q");
+        }
       } else {
-        console.warn("⚠️ Foydalanuvchi ma'lumotlari topilmadi");
-        document.getElementById('userText').innerHTML = 
-          "⚠️ Foydalanuvchi aniqlanmadi. Bot orqali kirishni tekshiring.";
+        console.warn("Telegram.WebApp.initData bo'sh");
       }
       
-      // URL dan test parametrlarini olish
-      const urlParams = new URLSearchParams(window.location.search);
-      testId = urlParams.get('test_id') || 'math_test_001';
+      // 2. Ikkinchi usul: Telegram.WebApp.initDataUnsafe
+      const initDataUnsafe = Telegram.WebApp.initDataUnsafe || {};
+      console.log("initDataUnsafe:", initDataUnsafe);
       
-      console.log("🎯 Test parametrlari:", { testId });
-      
-    } else {
-      console.error("❌ Telegram WebApp obyekti topilmadi!");
-      document.getElementById('userText').innerHTML = 
-        "❌ Telegram ichida emassiz. Bot orqali kirishingiz kerak.";
-      
-      // Test rejimi uchun URL dan user_id ni olish
-      const urlParams = new URLSearchParams(window.location.search);
-      telegramUserId = urlParams.get('user_id');
-      
-      if (telegramUserId) {
-        console.log("🔄 Test rejimi: URL dan user_id:", telegramUserId);
+      if (initDataUnsafe.user) {
+        telegramUser = initDataUnsafe.user;
+        telegramUserId = telegramUser.id;
+        console.log("✅ initDataUnsafe dan user topildi:", telegramUser);
+        return true;
       }
     }
+    
+    // 3. Uchinchi usul: URL hash (#) qismidan
+    const hash = window.location.hash.substring(1);
+    console.log("URL hash:", hash);
+    
+    if (hash) {
+      const params = new URLSearchParams(hash);
+      const userParam = params.get('user');
+      
+      if (userParam) {
+        try {
+          telegramUser = JSON.parse(decodeURIComponent(userParam));
+          telegramUserId = telegramUser.id;
+          console.log("✅ URL hash dan user topildi:", telegramUser);
+          return true;
+        } catch (e) {
+          console.error("URL hash parse xatosi:", e);
+        }
+      }
+      
+      // Telegram formatida: #tgWebAppData=...
+      const webAppData = params.get('tgWebAppData');
+      if (webAppData) {
+        const dataParams = new URLSearchParams(webAppData);
+        const userParam = dataParams.get('user');
+        
+        if (userParam) {
+          try {
+            telegramUser = JSON.parse(decodeURIComponent(userParam));
+            telegramUserId = telegramUser.id;
+            console.log("✅ tgWebAppData dan user topildi:", telegramUser);
+            return true;
+          } catch (e) {
+            console.error("tgWebAppData parse xatosi:", e);
+          }
+        }
+      }
+    }
+    
+    // 4. To'rtinchi usul: URL query parametrlaridan
+    const urlParams = new URLSearchParams(window.location.search);
+    const userIdFromUrl = urlParams.get('user_id');
+    const userFromUrl = urlParams.get('user');
+    
+    if (userIdFromUrl) {
+      telegramUserId = userIdFromUrl;
+      telegramUser = {
+        id: parseInt(userIdFromUrl),
+        first_name: urlParams.get('first_name') || 'Foydalanuvchi',
+        last_name: urlParams.get('last_name') || '',
+        username: urlParams.get('username') || 'user'
+      };
+      console.log("✅ URL dan user_id topildi:", telegramUser);
+      return true;
+    }
+    
+    if (userFromUrl) {
+      try {
+        telegramUser = JSON.parse(decodeURIComponent(userFromUrl));
+        telegramUserId = telegramUser.id;
+        console.log("✅ URL query dan user topildi:", telegramUser);
+        return true;
+      } catch (e) {
+        console.error("URL query parse xatosi:", e);
+      }
+    }
+    
+    console.error("❌ Hech qanday usul bilan user ma'lumotlari topilmadi");
+    return false;
   }
   
   // ================== SAVOLLARNI YARATISH ==================
@@ -521,12 +579,7 @@
             telegram_id: telegramUserId,
             test_id: testId,
             answers: answers,
-            user_info: telegramUser ? {
-              first_name: telegramUser.first_name,
-              last_name: telegramUser.last_name,
-              username: telegramUser.username,
-              language_code: telegramUser.language_code
-            } : {},
+            user_info: telegramUser || {},
             submitted_at: new Date().toISOString()
           }
         ])
@@ -550,14 +603,11 @@
       // 8. Telegram botga ma'lumot yuborish (agar mavjud bo'lsa)
       if (window.Telegram && Telegram.WebApp) {
         try {
-          const webAppData = {
+          Telegram.WebApp.sendData(JSON.stringify({
             test_id: testId,
             answers_count: answeredCount,
-            user_id: telegramUserId,
-            timestamp: new Date().toISOString()
-          };
-          
-          Telegram.WebApp.sendData(JSON.stringify(webAppData));
+            user_id: telegramUserId
+          }));
           
           // 3 soniyadan so'ng Mini App ni yopish
           setTimeout(() => {
@@ -638,9 +688,31 @@
     }, 100);
   }
   
+  // ================== FOYDALANUVCHI MA'LUMOTLARINI KO'RSATISH ==================
+  function displayUserInfo() {
+    if (telegramUser) {
+      const fullName = `${telegramUser.first_name || ''} ${telegramUser.last_name || ''}`.trim();
+      const username = telegramUser.username ? `@${telegramUser.username}` : '';
+      
+      document.getElementById('userText').innerHTML = 
+        `${fullName || 'Foydalanuvchi'} ${username ? `(${username})` : ''}`;
+      console.log("✅ Foydalanuvchi ma'lumotlari ko'rsatildi:", telegramUser);
+    } else if (telegramUserId) {
+      document.getElementById('userText').innerHTML = 
+        `Foydalanuvchi ID: ${telegramUserId}`;
+      console.log("✅ Faqat user_id ko'rsatildi:", telegramUserId);
+    } else {
+      document.getElementById('userText').innerHTML = 
+        "❌ Foydalanuvchi aniqlanmadi. Bot orqali kirishni tekshiring.";
+      console.warn("⚠️ Foydalanuvchi ma'lumotlari yo'q");
+    }
+  }
+  
   // ================== DASTURNI BOSHLASH ==================
   window.onload = function() {
     console.log("🚀 Mini App yuklanmoqda...");
+    console.log("URL:", window.location.href);
+    console.log("Telegram obyekti mavjudmi?", !!window.Telegram);
     
     // CSS animatsiyalari
     const style = document.createElement('style');
@@ -656,13 +728,16 @@
     `;
     document.head.appendChild(style);
     
-    // 1. Telegram WebApp ni ishga tushirish
-    initTelegramWebApp();
+    // 1. Telegram ma'lumotlarini parse qilish
+    const userFound = parseTelegramInitData();
     
-    // 2. Savollarni yaratish
+    // 2. Foydalanuvchi ma'lumotlarini ko'rsatish
+    displayUserInfo();
+    
+    // 3. Savollarni yaratish
     createQuestions();
     
-    // 3. Klaviatura kombinatsiyalari
+    // 4. Klaviatura kombinatsiyalari
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         clearAll();
@@ -672,7 +747,7 @@
       }
     });
     
-    // 4. Internet holatini kuzatish
+    // 5. Internet holatini kuzatish
     window.addEventListener('online', () => {
       showMessage("🌐 Internet ulandi", "success");
     });
@@ -681,9 +756,12 @@
       showError("🌐 Internet uzildi! Javoblarni saqlab bo'lmaydi");
     });
     
-    console.log("✅ Mini App tayyor!");
+    console.log("✅ Mini App tayyor! User topildimi?", userFound);
+    console.log("Telegram User:", telegramUser);
+    console.log("Telegram User ID:", telegramUserId);
   };
 </script>
 </body>
 </html>
+
 
