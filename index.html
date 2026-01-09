@@ -1,31 +1,49 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Mini App</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mini App Test</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background-color: var(--tg-theme-bg-color); color: var(--tg-theme-text-color); }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; background: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color); border: none; border-radius: 8px; }
+        .warning { color: red; font-weight: bold; margin-bottom: 10px; display: none; }
+    </style>
 </head>
 <body>
+    <div id="warning" class="warning">Warning: initData is empty!</div>
+    <button id="sendBtn">Send Data to Bot</button>
 
-<button onclick="send()">SEND INIT DATA</button>
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.ready();
 
-<script>
-  const tg = Telegram.WebApp;
-  tg.ready();
+        const initData = tg.initData;
+        const initDataUnsafe = tg.initDataUnsafe;
 
-  function send() {
-    console.log("initData:", tg.initData);
+        // Log to browser console
+        console.log("initData:", initData);
+        console.log("initDataUnsafe:", initDataUnsafe);
 
-    if (!tg.initData) {
-      alert("❌ initData YO‘Q — inline tugma bilan ochilmagan");
-      return;
-    }
+        // Show warning if empty
+        if (!initData) {
+            document.getElementById('warning').style.display = 'block';
+        }
 
-    tg.sendData(tg.initData);
-    alert("✅ yuborildi (botga qaragin)");
-    // tg.close(); // hozircha o‘chiq
-  }
-</script>
-
+        document.getElementById('sendBtn').addEventListener('click', () => {
+            if (initData) {
+                // This sends data back to the bot
+                tg.sendData(initData);
+                
+                // Close the app after a tiny delay to ensure data is processed
+                setTimeout(() => {
+                    tg.close();
+                }, 500);
+            } else {
+                alert("No data to send. Are you running this inside Telegram?");
+            }
+        });
+    </script>
 </body>
 </html>
