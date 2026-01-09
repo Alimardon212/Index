@@ -295,53 +295,76 @@
 
 <script>
   // ================== SUPABASE KONFIGURATSIYA ==================
-  // SIZNING MA'LUMOTLARINGIZ
   const SUPABASE_URL = 'https://uoezkqtjraibytzdnoiu.supabase.co';
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVvZXprcXRqcmFpYnl0emRub2l1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc3OTg4NDAsImV4cCI6MjA4MzM3NDg0MH0.-DfYiPSelF-iFOQbCQMcx5RzOP1K90zPDCzS-Q6ugvg';
   
   const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   
-  // ================== O'ZGARUVCHILAR ==================
   let answers = {};
   let telegramUserId = null;
   let testId = 'default_test';
   let numClosed = 30;
   let numOpen = 5;
+  let telegramUser = null;
   
-  // ================== TELEGRAM USER ID NI OLISH ==================
-  function getTelegramData() {
-    try {
-      // Telegram Web App initData
-      const hash = window.location.hash.substring(1);
-      if (!hash) {
-        // URL dan user_id ni olish
-        const urlParams = new URLSearchParams(window.location.search);
-        const userId = urlParams.get('user_id');
-        return userId ? { user: { id: userId } } : null;
+  // ================== TELEGRAM WEBAPP NI ISHGA TUSHIRISH ==================
+  function initTelegramWebApp() {
+    if (window.Telegram && window.Telegram.WebApp) {
+      console.log("📱 Telegram WebApp mavjud!");
+      
+      // Telegram WebApp ni ishga tushirish
+      Telegram.WebApp.ready();
+      
+      // Mini App ni to'liq ekranga kengaytirish
+      Telegram.WebApp.expand();
+      
+      // Foydalanuvchi ma'lumotlarini olish
+      const initData = Telegram.WebApp.initData || '';
+      const initDataUnsafe = Telegram.WebApp.initDataUnsafe || {};
+      
+      telegramUser = initDataUnsafe.user;
+      
+      console.log("📊 Telegram ma'lumotlari:", {
+        initData: initData ? "Mavjud" : "Yo'q",
+        user: telegramUser,
+        platform: Telegram.WebApp.platform,
+        version: Telegram.WebApp.version
+      });
+      
+      // Agar foydalanuvchi ma'lumotlari mavjud bo'lsa
+      if (telegramUser) {
+        telegramUserId = telegramUser.id;
+        
+        // UI ga foydalanuvchi ma'lumotlarini chiqarish
+        document.getElementById('userText').innerHTML = 
+          `${telegramUser.first_name || 'Foydalanuvchi'} ${telegramUser.last_name || ''} (@${telegramUser.username || 'user'})`;
+        
+        console.log("✅ Foydalanuvchi aniqlandi:", telegramUserId);
+      } else {
+        console.warn("⚠️ Foydalanuvchi ma'lumotlari topilmadi");
+        document.getElementById('userText').innerHTML = 
+          "⚠️ Foydalanuvchi aniqlanmadi. Bot orqali kirishni tekshiring.";
       }
       
-      const params = new URLSearchParams(hash);
-      const initData = params.get('tgWebAppData');
+      // URL dan test parametrlarini olish
+      const urlParams = new URLSearchParams(window.location.search);
+      testId = urlParams.get('test_id') || 'math_test_001';
       
-      if (initData) {
-        const dataParams = new URLSearchParams(initData);
-        const userStr = dataParams.get('user');
-        if (userStr) {
-          return { user: JSON.parse(decodeURIComponent(userStr)) };
-        }
+      console.log("🎯 Test parametrlari:", { testId });
+      
+    } else {
+      console.error("❌ Telegram WebApp obyekti topilmadi!");
+      document.getElementById('userText').innerHTML = 
+        "❌ Telegram ichida emassiz. Bot orqali kirishingiz kerak.";
+      
+      // Test rejimi uchun URL dan user_id ni olish
+      const urlParams = new URLSearchParams(window.location.search);
+      telegramUserId = urlParams.get('user_id');
+      
+      if (telegramUserId) {
+        console.log("🔄 Test rejimi: URL dan user_id:", telegramUserId);
       }
-      
-      // Alternative method
-      const user = params.get('user');
-      if (user) {
-        return { user: JSON.parse(decodeURIComponent(user)) };
-      }
-      
-    } catch (error) {
-      console.error("Telegram ma'lumotlarini olishda xatolik:", error);
     }
-    
-    return null;
   }
   
   // ================== SAVOLLARNI YARATISH ==================
@@ -354,6 +377,8 @@
     testId = urlParams.get('test_id') || 'math_test_001';
     numClosed = parseInt(urlParams.get('closed')) || 30;
     numOpen = parseInt(urlParams.get('open')) || 5;
+    
+    console.log("📝 Test konfiguratsiyasi:", { numClosed, numOpen, testId });
     
     // Yopiq savollar (ABCD)
     for (let i = 1; i <= numClosed; i++) {
@@ -424,7 +449,7 @@
     
     document.getElementById('answeredCount').textContent = answered;
     document.getElementById('totalCount').textContent = total;
-    document.getElementById('stats').style.display = 'block';
+    document.getElementById('stats').style.display = answered > 0 ? 'block' : 'none';
     
     // Progress bar effect
     const progress = (answered / total) * 100;
@@ -457,7 +482,7 @@
       document.getElementById('result').style.display = 'none';
       updateStats();
       
-      showMessage("Barcha javoblar tozalandi!", "success");
+      showMessage("✅ Barcha javoblar tozalandi!", "success");
     }
   }
   
@@ -466,36 +491,29 @@
     // 1. Tekshirishlar
     const answeredCount = Object.keys(answers).length;
     if (answeredCount === 0) {
-      showError("Iltimos, kamida bitta savolga javob bering!");
+      showError("❌ Iltimos, kamida bitta savolga javob bering!");
       return;
     }
     
     // 2. Telegram user ID ni aniqlash
-    const telegramData = getTelegramData();
-    if (!telegramData || !telegramData.user) {
-      showError("Foydalanuvchi aniqlanmadi! Bot orqali kirishni urinib ko'ring.");
+    if (!telegramUserId) {
+      showError("❌ Foydalanuvchi aniqlanmadi! Bot orqali kirishni urinib ko'ring.");
       return;
     }
     
-    telegramUserId = telegramData.user.id;
-    
-    // 3. Foydalanuvchi ma'lumotlarini ko'rsatish
-    const user = telegramData.user;
-    document.getElementById('userText').innerHTML = 
-      `${user.first_name || 'Foydalanuvchi'} ${user.last_name || ''} (@${user.username || 'user'})`;
-    
-    // 4. Loaderni ko'rsatish
+    // 3. Loaderni ko'rsatish
     showLoader(true);
     hideError();
     
     try {
-      console.log("Supabase ga yuborilmoqda...", {
+      console.log("📤 Supabase ga yuborilmoqda...", {
         telegram_id: telegramUserId,
         test_id: testId,
-        answers_count: answeredCount
+        answers_count: answeredCount,
+        user: telegramUser
       });
       
-      // 5. Supabase ga saqlash
+      // 4. Supabase ga saqlash
       const { data, error } = await supabase
         .from('test_results')
         .insert([
@@ -503,11 +521,12 @@
             telegram_id: telegramUserId,
             test_id: testId,
             answers: answers,
-            user_info: {
-              first_name: user.first_name,
-              last_name: user.last_name,
-              username: user.username
-            },
+            user_info: telegramUser ? {
+              first_name: telegramUser.first_name,
+              last_name: telegramUser.last_name,
+              username: telegramUser.username,
+              language_code: telegramUser.language_code
+            } : {},
             submitted_at: new Date().toISOString()
           }
         ])
@@ -517,31 +536,45 @@
         throw error;
       }
       
-      // 6. Muvaffaqqiyatli saqlandi
+      // 5. Muvaffaqqiyatli saqlandi
       console.log("✅ Muvaffaqqiyatli saqlandi:", data);
       
-      // 7. Natijani ko'rsatish
+      // 6. Natijani ko'rsatish
       showResult(data[0]);
       
-      // 8. Tugmalarni yashirish
+      // 7. Tugmalarni yashirish
       document.querySelectorAll('.action-btn').forEach(btn => {
         btn.style.display = 'none';
       });
       
-      // 9. Telefonda vibratsiya (agar mavjud bo'lsa)
-      if (navigator.vibrate) {
-        navigator.vibrate([100, 50, 100]);
+      // 8. Telegram botga ma'lumot yuborish (agar mavjud bo'lsa)
+      if (window.Telegram && Telegram.WebApp) {
+        try {
+          const webAppData = {
+            test_id: testId,
+            answers_count: answeredCount,
+            user_id: telegramUserId,
+            timestamp: new Date().toISOString()
+          };
+          
+          Telegram.WebApp.sendData(JSON.stringify(webAppData));
+          
+          // 3 soniyadan so'ng Mini App ni yopish
+          setTimeout(() => {
+            Telegram.WebApp.close();
+          }, 3000);
+          
+        } catch (telegramError) {
+          console.warn("⚠️ Telegram botga yuborishda xatolik:", telegramError);
+        }
       }
       
-      // 10. Botga bildirish yuborish (agar kerak bo'lsa)
-      sendNotificationToBot();
-      
     } catch (error) {
-      // 11. Xatolik bo'lsa
+      // 9. Xatolik bo'lsa
       console.error("❌ Supabase xatosi:", error);
-      showError(`Saqlashda xatolik: ${error.message || 'Noma\'lum xatolik'}`);
+      showError(`❌ Saqlashda xatolik: ${error.message || 'Noma\'lum xatolik'}`);
     } finally {
-      // 12. Loaderni yashirish
+      // 10. Loaderni yashirish
       showLoader(false);
     }
   }
@@ -605,22 +638,10 @@
     }, 100);
   }
   
-  function sendNotificationToBot() {
-    // Bu funksiya botga test topshirilganligi haqida xabar yuboradi
-    // Agar kerak bo'lsa, o'zingizning serveringizga so'rov yuboring
-    fetch('https://your-bot-server.com/notify', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        telegram_id: telegramUserId,
-        test_id: testId,
-        answers_count: Object.keys(answers).length
-      })
-    }).catch(err => console.log("Botga bildirish yuborilmadi:", err));
-  }
-  
   // ================== DASTURNI BOSHLASH ==================
   window.onload = function() {
+    console.log("🚀 Mini App yuklanmoqda...");
+    
     // CSS animatsiyalari
     const style = document.createElement('style');
     style.textContent = `
@@ -635,19 +656,13 @@
     `;
     document.head.appendChild(style);
     
-    // Savollarni yaratish
+    // 1. Telegram WebApp ni ishga tushirish
+    initTelegramWebApp();
+    
+    // 2. Savollarni yaratish
     createQuestions();
     
-    // Foydalanuvchi ma'lumotlarini yuklash
-    const telegramData = getTelegramData();
-    if (telegramData && telegramData.user) {
-      const user = telegramData.user;
-      document.getElementById('userText').innerHTML = 
-        `${user.first_name || 'Foydalanuvchi'} ${user.last_name || ''} (@${user.username || 'user'})`;
-      telegramUserId = user.id;
-    }
-    
-    // Klaviatura kombinatsiyalari
+    // 3. Klaviatura kombinatsiyalari
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         clearAll();
@@ -657,19 +672,18 @@
       }
     });
     
-    // Internet holatini kuzatish
+    // 4. Internet holatini kuzatish
     window.addEventListener('online', () => {
-      showMessage("Internet ulandi", "success");
+      showMessage("🌐 Internet ulandi", "success");
     });
     
     window.addEventListener('offline', () => {
-      showError("Internet uzildi! Javoblarni saqlab bo'lmaydi");
+      showError("🌐 Internet uzildi! Javoblarni saqlab bo'lmaydi");
     });
     
-    console.log("📱 Mini App yuklandi");
-    console.log("Test ID:", testId);
-    console.log("Telegram User ID:", telegramUserId);
+    console.log("✅ Mini App tayyor!");
   };
 </script>
 </body>
 </html>
+
