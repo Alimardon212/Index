@@ -3,118 +3,673 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Javoblar</title>
+  <title>Matematika Testi</title>
   <script defer src="https://cdn.jsdelivr.net/npm/mathlive"></script>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <style>
-    body{margin:0;font-family:Arial,sans-serif;background:#f0f2f5;padding:5px;}
-    .container{max-width:600px;margin:auto;background:white;padding:5px;border-radius:10px;}
-    .question{padding:8px;border-radius:5px;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center;font-size:16px;}
-    .question:nth-child(odd){background:#e8e8e8;}
-    .question:nth-child(even){background:#fff;}
-    .abcd-btn{padding:5px 8px;margin-left:4px;border:1px solid #ccc;border-radius:5px;cursor:pointer;font-weight:bold;font-size:14px;}
-    .abcd-btn.selected{background:#3498db;color:white;border-color:#2980b9;}
-    math-field{width:99%;padding:5px;border:1px solid #ccc;border-radius:5px;margin-top:5px;font-size:16px;}
-    .open-math{font-size:14px;padding:4px;}
-    .action-btn{padding:10px;margin-top:10px;width:48%;border:none;border-radius:5px;color:white;cursor:pointer;font-size:16px;}
-    .clear-btn{background:#e74c3c;margin-right:4%;}
-    .submit-btn{background:#2ecc71;}
-    #submitInfo{text-align:center;font-weight:bold;margin-top:15px;display:none;color:#27ae60;font-size:16px;}
+    * {
+      box-sizing: border-box;
+    }
+    
+    body {
+      margin: 0;
+      padding: 10px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
+    
+    .container {
+      max-width: 100%;
+      background: white;
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      margin-bottom: 20px;
+    }
+    
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid #f0f0f0;
+    }
+    
+    .header h1 {
+      margin: 0 0 5px 0;
+      color: #2c3e50;
+    }
+    
+    .header p {
+      margin: 0;
+      color: #7f8c8d;
+      font-size: 14px;
+    }
+    
+    .question {
+      background: #f8f9fa;
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 10px;
+      border: 1px solid #e9ecef;
+      transition: all 0.3s ease;
+    }
+    
+    .question:hover {
+      background: #e9ecef;
+      transform: translateY(-2px);
+    }
+    
+    .question-number {
+      font-weight: bold;
+      color: #3498db;
+      font-size: 18px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .abcd-options {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-top: 10px;
+    }
+    
+    @media (min-width: 480px) {
+      .abcd-options {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+    
+    .abcd-btn {
+      padding: 12px 5px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      background: white;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 16px;
+      text-align: center;
+      transition: all 0.2s;
+    }
+    
+    .abcd-btn:hover {
+      border-color: #3498db;
+      background: #f8f9fa;
+    }
+    
+    .abcd-btn.selected {
+      background: #3498db;
+      color: white;
+      border-color: #2980b9;
+      transform: scale(1.05);
+    }
+    
+    math-field {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      font-size: 16px;
+      margin-top: 10px;
+      background: white;
+    }
+    
+    math-field:focus {
+      border-color: #3498db;
+      outline: none;
+    }
+    
+    .controls {
+      display: flex;
+      gap: 10px;
+      margin-top: 30px;
+      flex-wrap: wrap;
+    }
+    
+    .action-btn {
+      flex: 1;
+      min-width: 140px;
+      padding: 15px;
+      border: none;
+      border-radius: 10px;
+      color: white;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.3s;
+    }
+    
+    .clear-btn {
+      background: linear-gradient(to right, #ff416c, #ff4b2b);
+    }
+    
+    .submit-btn {
+      background: linear-gradient(to right, #00b09b, #96c93d);
+    }
+    
+    .action-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+    
+    .action-btn:active {
+      transform: translateY(-1px);
+    }
+    
+    .stats {
+      background: #e3f2fd;
+      border-radius: 10px;
+      padding: 15px;
+      margin-top: 20px;
+      text-align: center;
+      font-size: 14px;
+      color: #1565c0;
+      display: none;
+    }
+    
+    .loader {
+      display: none;
+      text-align: center;
+      padding: 20px;
+    }
+    
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #3498db;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 10px;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .result {
+      display: none;
+      text-align: center;
+      padding: 30px;
+      background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+      border-radius: 15px;
+      margin-top: 20px;
+      color: white;
+    }
+    
+    .result-icon {
+      font-size: 50px;
+      margin-bottom: 15px;
+    }
+    
+    .error {
+      display: none;
+      background: #ffebee;
+      border: 1px solid #ffcdd2;
+      color: #c62828;
+      padding: 15px;
+      border-radius: 10px;
+      margin-top: 15px;
+      text-align: center;
+    }
+    
+    .user-info {
+      background: #fff3e0;
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 15px;
+      font-size: 14px;
+      color: #e65100;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .user-icon {
+      font-size: 20px;
+    }
+    
+    .question-type {
+      font-size: 12px;
+      color: #7f8c8d;
+      background: white;
+      padding: 3px 8px;
+      border-radius: 12px;
+      border: 1px solid #ddd;
+    }
   </style>
 </head>
 <body>
-<div class="container">
-  <div id="questionsContainer"></div>
-  <div style="display:flex;justify-content:space-between;">
-    <button class="action-btn clear-btn" onclick="clearAll()">♻️ Tozalash</button>
-    <button class="action-btn submit-btn" onclick="submitTest()">📤 Topshirish</button>
+  <div class="container">
+    <div class="header">
+      <h1>📚 Matematika Testi</h1>
+      <p>Savollarga javob bering va "Topshirish" tugmasi orqali yuboring</p>
+    </div>
+    
+    <div class="user-info" id="userInfo">
+      <span class="user-icon">👤</span>
+      <span id="userText">Foydalanuvchi yuklanmoqda...</span>
+    </div>
+    
+    <div id="questionsContainer"></div>
+    
+    <div class="stats" id="stats">
+      <span id="answeredCount">0</span> ta savolga javob berildi |
+      <span id="totalCount">0</span> ta savol
+    </div>
+    
+    <div class="controls">
+      <button class="action-btn clear-btn" onclick="clearAll()">
+        <span style="font-size: 20px;">♻️</span> Tozalash
+      </button>
+      <button class="action-btn submit-btn" onclick="submitToSupabase()">
+        <span style="font-size: 20px;">📤</span> Topshirish
+      </button>
+    </div>
+    
+    <div class="loader" id="loader">
+      <div class="spinner"></div>
+      <p>Javoblar saqlanmoqda...</p>
+    </div>
+    
+    <div class="error" id="errorMsg"></div>
+    
+    <div class="result" id="result">
+      <div class="result-icon">✅</div>
+      <h2>Test topshirildi!</h2>
+      <p><strong id="resultCount">0</strong> ta savolga javob berdingiz</p>
+      <p>Natijalarni @TestResultBot orqali ko'rishingiz mumkin</p>
+      <p style="font-size: 12px; margin-top: 15px; opacity: 0.8;">
+        ID: <span id="resultId">-</span>
+      </p>
+    </div>
   </div>
-  <div id="submitInfo">✅ Test topshirildi</div>
-</div>
 
 <script>
-  let answers={};
-
-  // admin botdan oladi:
-  const numClosed = 30; // yopiq savollar soni (botdan olindi)
-  const numOpen = 5;    // ochiq savollar soni (botdan olindi)
-
-  function createQuestions(){
-    const container=document.getElementById('questionsContainer');
-    container.innerHTML='';
-
-    // yopiq savollar
-    for(let i=1;i<=numClosed;i++){
-      const q=document.createElement('div');
-      q.className='question';
-      q.innerHTML=`
-        <div>${i}.</div>
-        <div>
+  // ================== SUPABASE KONFIGURATSIYA ==================
+  // SIZNING MA'LUMOTLARINGIZ
+  const SUPABASE_URL = 'https://uoezkqtjraibytzdnoiu.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVvZXprcXRqcmFpYnl0emRub2l1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc3OTg4NDAsImV4cCI6MjA4MzM3NDg0MH0.-DfYiPSelF-iFOQbCQMcx5RzOP1K90zPDCzS-Q6ugvg';
+  
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  
+  // ================== O'ZGARUVCHILAR ==================
+  let answers = {};
+  let telegramUserId = null;
+  let testId = 'default_test';
+  let numClosed = 30;
+  let numOpen = 5;
+  
+  // ================== TELEGRAM USER ID NI OLISH ==================
+  function getTelegramData() {
+    try {
+      // Telegram Web App initData
+      const hash = window.location.hash.substring(1);
+      if (!hash) {
+        // URL dan user_id ni olish
+        const urlParams = new URLSearchParams(window.location.search);
+        const userId = urlParams.get('user_id');
+        return userId ? { user: { id: userId } } : null;
+      }
+      
+      const params = new URLSearchParams(hash);
+      const initData = params.get('tgWebAppData');
+      
+      if (initData) {
+        const dataParams = new URLSearchParams(initData);
+        const userStr = dataParams.get('user');
+        if (userStr) {
+          return { user: JSON.parse(decodeURIComponent(userStr)) };
+        }
+      }
+      
+      // Alternative method
+      const user = params.get('user');
+      if (user) {
+        return { user: JSON.parse(decodeURIComponent(user)) };
+      }
+      
+    } catch (error) {
+      console.error("Telegram ma'lumotlarini olishda xatolik:", error);
+    }
+    
+    return null;
+  }
+  
+  // ================== SAVOLLARNI YARATISH ==================
+  function createQuestions() {
+    const container = document.getElementById('questionsContainer');
+    container.innerHTML = '';
+    
+    // URL parametrlarini olish
+    const urlParams = new URLSearchParams(window.location.search);
+    testId = urlParams.get('test_id') || 'math_test_001';
+    numClosed = parseInt(urlParams.get('closed')) || 30;
+    numOpen = parseInt(urlParams.get('open')) || 5;
+    
+    // Yopiq savollar (ABCD)
+    for (let i = 1; i <= numClosed; i++) {
+      const q = document.createElement('div');
+      q.className = 'question';
+      q.innerHTML = `
+        <div class="question-number">
+          <span>${i}. Savol</span>
+          <span class="question-type">Yopiq</span>
+        </div>
+        <div class="abcd-options">
           <button class="abcd-btn" onclick="selectAnswer(${i},'A',this)">A</button>
           <button class="abcd-btn" onclick="selectAnswer(${i},'B',this)">B</button>
           <button class="abcd-btn" onclick="selectAnswer(${i},'C',this)">C</button>
           <button class="abcd-btn" onclick="selectAnswer(${i},'D',this)">D</button>
-        </div>`;
+        </div>
+      `;
       container.appendChild(q);
     }
-
-    // ochiq savollar
-    for(let i=numClosed+1;i<=numClosed+numOpen;i++){
-      const q=document.createElement('div');
-      q.className='question';
-      q.style.flexDirection='column';
-      q.style.alignItems='flex-start';
-      q.style.background = (i%2===1)? '#e8e8e8' : '#fff';
-      q.innerHTML=`<div>${i}.</div>
-        <math-field id="answer-${i}" class="open-math" virtual-keyboard-mode="onfocus"
-        oninput="updateOpenAnswer(${i}, this.getValue('text'))"></math-field>`;
+    
+    // Ochiq savollar (matematik formula)
+    for (let i = numClosed + 1; i <= numClosed + numOpen; i++) {
+      const q = document.createElement('div');
+      q.className = 'question';
+      q.innerHTML = `
+        <div class="question-number">
+          <span>${i}. Savol</span>
+          <span class="question-type">Matematik</span>
+        </div>
+        <p style="margin: 10px 0; color: #666;">Matematik javobingizni kiriting:</p>
+        <math-field id="answer-${i}" 
+          virtual-keyboard-mode="manual"
+          oninput="updateOpenAnswer(${i}, this.getValue('text'))"
+          placeholder="Masalan: \\frac{1}{2} yoki x^2+3">
+        </math-field>
+      `;
       container.appendChild(q);
     }
+    
+    // Statistikani yangilash
+    updateStats();
   }
-
-  function selectAnswer(qNum,ans,btn){
-    answers[qNum]=ans;
-    btn.parentElement.querySelectorAll('.abcd-btn').forEach(b=>b.classList.remove('selected'));
+  
+  // ================== JAVOB FUNKSIYALARI ==================
+  function selectAnswer(qNum, ans, btn) {
+    answers[qNum] = ans;
+    
+    // Barcha tugmalardan selected klassini olib tashlash
+    const questionDiv = btn.closest('.question');
+    questionDiv.querySelectorAll('.abcd-btn').forEach(b => {
+      b.classList.remove('selected');
+    });
+    
+    // Tanlangan tugmaga selected klassini qo'shish
     btn.classList.add('selected');
-    saveAnswers();
+    updateStats();
   }
-
-  function updateOpenAnswer(qNum,val){ answers[qNum]=val; saveAnswers(); }
-
-  function clearAll(){
-    answers={};
-    document.querySelectorAll('.abcd-btn').forEach(b=>b.classList.remove('selected'));
-    for(let i=numClosed+1;i<=numClosed+numOpen;i++){
-      document.getElementById('answer-'+i).setValue('',{format:'text'});
+  
+  function updateOpenAnswer(qNum, val) {
+    answers[qNum] = val.trim();
+    updateStats();
+  }
+  
+  // ================== STATISTIKA ==================
+  function updateStats() {
+    const answered = Object.keys(answers).length;
+    const total = numClosed + numOpen;
+    
+    document.getElementById('answeredCount').textContent = answered;
+    document.getElementById('totalCount').textContent = total;
+    document.getElementById('stats').style.display = 'block';
+    
+    // Progress bar effect
+    const progress = (answered / total) * 100;
+    document.getElementById('stats').style.background = 
+      `linear-gradient(90deg, #e3f2fd 0%, #e3f2fd ${progress}%, #ffffff ${progress}%)`;
+  }
+  
+  // ================== TOZALASH ==================
+  function clearAll() {
+    if (Object.keys(answers).length === 0) {
+      showError("Tozalash uchun javoblar mavjud emas!");
+      return;
     }
-    localStorage.removeItem('testAnswers');
-    document.getElementById('submitInfo').style.display='none';
+    
+    if (confirm(`${Object.keys(answers).length} ta javobni tozalashni istaysizmi?`)) {
+      answers = {};
+      
+      // ABCD tugmalarini tozalash
+      document.querySelectorAll('.abcd-btn').forEach(btn => {
+        btn.classList.remove('selected');
+      });
+      
+      // Matematik formulalarni tozalash
+      document.querySelectorAll('math-field').forEach(mf => {
+        mf.setValue('', { format: 'text' });
+      });
+      
+      // UI ni yangilash
+      document.getElementById('errorMsg').style.display = 'none';
+      document.getElementById('result').style.display = 'none';
+      updateStats();
+      
+      showMessage("Barcha javoblar tozalandi!", "success");
+    }
   }
-
-  function submitTest(){
-    if(Object.keys(answers).length===0){ alert("Hech qanday javob tanlanmagan!"); return; }
-    document.getElementById('questionsContainer').style.display='none';
-    document.querySelectorAll('.action-btn').forEach(b=>b.style.display='none');
-    document.getElementById('submitInfo').style.display='block';
-    console.log("Topshirilgan javoblar:",answers);
-  }
-
-  function saveAnswers(){ localStorage.setItem('testAnswers',JSON.stringify(answers)); }
-
-  function loadAnswers(){
-    const saved=localStorage.getItem('testAnswers');
-    if(saved){ answers=JSON.parse(saved);
-      for(let i=1;i<=numClosed;i++){ if(answers[i]){
-        document.querySelectorAll(`#questionsContainer .question:nth-child(${i}) .abcd-btn`).forEach(b=>{
-          if(b.textContent===answers[i]) b.classList.add('selected');
-        });
-      }}
-      for(let i=numClosed+1;i<=numClosed+numOpen;i++){ if(answers[i])
-        document.getElementById('answer-'+i).setValue(answers[i],{format:'text'});
+  
+  // ================== SUPABASE GA SAQLASH ==================
+  async function submitToSupabase() {
+    // 1. Tekshirishlar
+    const answeredCount = Object.keys(answers).length;
+    if (answeredCount === 0) {
+      showError("Iltimos, kamida bitta savolga javob bering!");
+      return;
+    }
+    
+    // 2. Telegram user ID ni aniqlash
+    const telegramData = getTelegramData();
+    if (!telegramData || !telegramData.user) {
+      showError("Foydalanuvchi aniqlanmadi! Bot orqali kirishni urinib ko'ring.");
+      return;
+    }
+    
+    telegramUserId = telegramData.user.id;
+    
+    // 3. Foydalanuvchi ma'lumotlarini ko'rsatish
+    const user = telegramData.user;
+    document.getElementById('userText').innerHTML = 
+      `${user.first_name || 'Foydalanuvchi'} ${user.last_name || ''} (@${user.username || 'user'})`;
+    
+    // 4. Loaderni ko'rsatish
+    showLoader(true);
+    hideError();
+    
+    try {
+      console.log("Supabase ga yuborilmoqda...", {
+        telegram_id: telegramUserId,
+        test_id: testId,
+        answers_count: answeredCount
+      });
+      
+      // 5. Supabase ga saqlash
+      const { data, error } = await supabase
+        .from('test_results')
+        .insert([
+          {
+            telegram_id: telegramUserId,
+            test_id: testId,
+            answers: answers,
+            user_info: {
+              first_name: user.first_name,
+              last_name: user.last_name,
+              username: user.username
+            },
+            submitted_at: new Date().toISOString()
+          }
+        ])
+        .select();
+      
+      if (error) {
+        throw error;
       }
+      
+      // 6. Muvaffaqqiyatli saqlandi
+      console.log("✅ Muvaffaqqiyatli saqlandi:", data);
+      
+      // 7. Natijani ko'rsatish
+      showResult(data[0]);
+      
+      // 8. Tugmalarni yashirish
+      document.querySelectorAll('.action-btn').forEach(btn => {
+        btn.style.display = 'none';
+      });
+      
+      // 9. Telefonda vibratsiya (agar mavjud bo'lsa)
+      if (navigator.vibrate) {
+        navigator.vibrate([100, 50, 100]);
+      }
+      
+      // 10. Botga bildirish yuborish (agar kerak bo'lsa)
+      sendNotificationToBot();
+      
+    } catch (error) {
+      // 11. Xatolik bo'lsa
+      console.error("❌ Supabase xatosi:", error);
+      showError(`Saqlashda xatolik: ${error.message || 'Noma\'lum xatolik'}`);
+    } finally {
+      // 12. Loaderni yashirish
+      showLoader(false);
     }
   }
-
-  window.onload=function(){ createQuestions(); loadAnswers(); }
+  
+  // ================== YORDAMCHI FUNKSIYALAR ==================
+  function showLoader(show) {
+    document.getElementById('loader').style.display = show ? 'block' : 'none';
+  }
+  
+  function showError(message) {
+    const errorDiv = document.getElementById('errorMsg');
+    errorDiv.innerHTML = `<strong>⚠️ Xatolik:</strong> ${message}`;
+    errorDiv.style.display = 'block';
+    
+    // 5 soniyadan so'ng yashirish
+    setTimeout(hideError, 5000);
+  }
+  
+  function hideError() {
+    document.getElementById('errorMsg').style.display = 'none';
+  }
+  
+  function showMessage(message, type = 'info') {
+    // Temporary message
+    const tempDiv = document.createElement('div');
+    tempDiv.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: ${type === 'success' ? '#4CAF50' : '#2196F3'};
+      color: white;
+      padding: 15px 20px;
+      border-radius: 10px;
+      z-index: 1000;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      animation: slideIn 0.3s ease;
+    `;
+    
+    tempDiv.textContent = message;
+    document.body.appendChild(tempDiv);
+    
+    setTimeout(() => {
+      tempDiv.style.animation = 'slideOut 0.3s ease';
+      setTimeout(() => tempDiv.remove(), 300);
+    }, 3000);
+  }
+  
+  function showResult(resultData) {
+    const answeredCount = Object.keys(answers).length;
+    
+    document.getElementById('resultCount').textContent = answeredCount;
+    document.getElementById('resultId').textContent = resultData.id || 'N/A';
+    document.getElementById('result').style.display = 'block';
+    
+    // Animatsiya
+    const resultDiv = document.getElementById('result');
+    resultDiv.style.transform = 'scale(0.9)';
+    setTimeout(() => {
+      resultDiv.style.transition = 'transform 0.3s ease';
+      resultDiv.style.transform = 'scale(1)';
+    }, 100);
+  }
+  
+  function sendNotificationToBot() {
+    // Bu funksiya botga test topshirilganligi haqida xabar yuboradi
+    // Agar kerak bo'lsa, o'zingizning serveringizga so'rov yuboring
+    fetch('https://your-bot-server.com/notify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        telegram_id: telegramUserId,
+        test_id: testId,
+        answers_count: Object.keys(answers).length
+      })
+    }).catch(err => console.log("Botga bildirish yuborilmadi:", err));
+  }
+  
+  // ================== DASTURNI BOSHLASH ==================
+  window.onload = function() {
+    // CSS animatsiyalari
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+      }
+      @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+      }
+    `;
+    document.head.appendChild(style);
+    
+    // Savollarni yaratish
+    createQuestions();
+    
+    // Foydalanuvchi ma'lumotlarini yuklash
+    const telegramData = getTelegramData();
+    if (telegramData && telegramData.user) {
+      const user = telegramData.user;
+      document.getElementById('userText').innerHTML = 
+        `${user.first_name || 'Foydalanuvchi'} ${user.last_name || ''} (@${user.username || 'user'})`;
+      telegramUserId = user.id;
+    }
+    
+    // Klaviatura kombinatsiyalari
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        clearAll();
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        submitToSupabase();
+      }
+    });
+    
+    // Internet holatini kuzatish
+    window.addEventListener('online', () => {
+      showMessage("Internet ulandi", "success");
+    });
+    
+    window.addEventListener('offline', () => {
+      showError("Internet uzildi! Javoblarni saqlab bo'lmaydi");
+    });
+    
+    console.log("📱 Mini App yuklandi");
+    console.log("Test ID:", testId);
+    console.log("Telegram User ID:", telegramUserId);
+  };
 </script>
 </body>
 </html>
