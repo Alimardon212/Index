@@ -91,30 +91,34 @@
   }
 
   function submitTest(){
-    if(Object.keys(answers).length===0){ alert("Hech qanday javob tanlanmagan!"); return; }
+    if(Object.keys(answers).length===0){
+      alert("Hech qanday javob tanlanmagan!");
+      return;
+    }
+
+    const tg = window.Telegram.WebApp;
+    const user = tg.initDataUnsafe?.user;
+
+    if(!user){
+      alert("User topilmadi");
+      return;
+    }
+
+    const payload = {
+      user_id: user.id,
+      answers: answers
+    };
+
+    // 📤 Telegram botga yuborish
+    tg.sendData(JSON.stringify(payload));
+
     document.getElementById('questionsContainer').style.display='none';
     document.querySelectorAll('.action-btn').forEach(b=>b.style.display='none');
     document.getElementById('submitInfo').style.display='block';
-    console.log("Topshirilgan javoblar:",answers);
-  }
-
-  function saveAnswers(){ localStorage.setItem('testAnswers',JSON.stringify(answers)); }
-
-  function loadAnswers(){
-    const saved=localStorage.getItem('testAnswers');
-    if(saved){ answers=JSON.parse(saved);
-      for(let i=1;i<=numClosed;i++){ if(answers[i]){
-        document.querySelectorAll(`#questionsContainer .question:nth-child(${i}) .abcd-btn`).forEach(b=>{
-          if(b.textContent===answers[i]) b.classList.add('selected');
-        });
-      }}
-      for(let i=numClosed+1;i<=numClosed+numOpen;i++){ if(answers[i])
-        document.getElementById('answer-'+i).setValue(answers[i],{format:'text'});
-      }
-    }
   }
 
   window.onload=function(){ createQuestions(); loadAnswers(); }
 </script>
 </body>
 </html>
+
