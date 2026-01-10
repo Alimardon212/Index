@@ -3,137 +3,72 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Test Tizimi</title>
+  <title>Milliy Sertifikat - Repetitsion Test</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/mathlive"></script>
   <style>
     :root {
-      --primary-color: #3498db;
-      --success-color: #2ecc71;
-      --danger-color: #e74c3c;
-      --bg-color: #f0f2f5;
+      --primary: #3498db;
+      --success: #2ecc71;
+      --bg: #f4f7f9;
+      --text: #2c3e50;
     }
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      background: var(--bg-color);
-      padding: 10px;
-      color: #333;
-    }
-    .container {
-      max-width: 500px;
-      margin: auto;
-      background: white;
-      padding: 20px;
-      border-radius: 15px;
-      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-    }
-
-    /* Login Page Style */
-    #loginSection {
-      text-align: center;
-      padding: 20px 0;
-    }
-    .login-icon { font-size: 50px; margin-bottom: 10px; }
-    input[type="text"] {
-      width: 90%;
-      padding: 12px;
-      margin: 15px 0;
-      border: 2px solid #ddd;
-      border-radius: 10px;
-      font-size: 18px;
-      text-align: center;
-      outline: none;
-    }
-    input[type="text"]:focus { border-color: var(--primary-color); }
+    body { margin: 0; font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); padding: 10px; }
+    .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
     
-    /* Test Page Style */
-    #testSection { display: none; }
-    .question {
-      padding: 15px;
-      border-radius: 10px;
-      margin-bottom: 10px;
-      border: 1px solid #eee;
-      background: #f9f9f9;
-    }
-    .abcd-container { display: flex; justify-content: flex-end; gap: 8px; margin-top: 5px; }
-    .abcd-btn {
-      padding: 10px 15px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: bold;
-      background: white;
-    }
-    .abcd-btn.selected {
-      background: var(--primary-color);
-      color: white;
-      border-color: #2980b9;
-    }
-    math-field {
-      width: 100%;
-      padding: 8px;
-      border-radius: 8px;
-      margin-top: 10px;
-      font-size: 20px;
-      background: white;
-      border: 1px solid #ccc;
-    }
+    /* Login */
+    #loginSection { text-align: center; padding: 40px 0; }
+    input[type="text"] { width: 80%; padding: 15px; margin: 20px 0; border: 2px solid #ddd; border-radius: 10px; font-size: 20px; text-align: center; }
 
-    /* Global Buttons */
-    .main-btn {
-      width: 100%;
-      padding: 15px;
-      border: none;
-      border-radius: 10px;
-      color: white;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-    .blue-btn { background: var(--primary-color); }
-    .green-btn { background: var(--success-color); }
-    .red-btn { background: var(--danger-color); margin-top: 10px; width: 48%; }
-    .main-btn:disabled { background: #ccc; }
+    /* Savollar */
+    .q-card { border-bottom: 1px solid #eee; padding: 15px 0; margin-bottom: 10px; }
+    .q-title { font-weight: bold; margin-bottom: 10px; display: block; color: #34495e; }
+    
+    /* Button Groups */
+    .btn-group { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-start; }
+    .opt-btn { padding: 10px 14px; border: 1px solid #ccc; border-radius: 8px; background: white; cursor: pointer; font-weight: bold; min-width: 45px; }
+    .opt-btn.selected { background: var(--primary); color: white; border-color: #2980b9; }
 
-    #submitInfo {
-      display: none;
-      text-align: center;
-      color: var(--success-color);
-      font-weight: bold;
-      font-size: 20px;
-      margin-top: 30px;
-    }
+    /* Ochiq savollar (a va b) */
+    .open-q-container { display: flex; flex-direction: column; gap: 10px; margin-top: 5px; }
+    .sub-q { display: flex; align-items: center; gap: 10px; }
+    .sub-label { font-weight: bold; color: var(--primary); width: 20px; }
+    math-field { flex: 1; padding: 8px; border-radius: 8px; border: 1px solid #ccc; background: #fff; font-size: 18px; }
+
+    /* Footer Buttons */
+    .footer-btns { display: flex; gap: 10px; margin-top: 25px; }
+    .btn { flex: 1; padding: 15px; border: none; border-radius: 10px; color: white; font-size: 16px; font-weight: bold; cursor: pointer; }
+    .btn-blue { background: var(--primary); }
+    .btn-green { background: var(--success); }
+    .btn-red { background: #e74c3c; }
+
+    #submitInfo { display: none; text-align: center; padding: 50px 0; color: var(--success); font-size: 22px; }
   </style>
 </head>
 <body>
 
 <div class="container">
-  <!-- 1. LOGIN PAGE -->
+  <!-- LOGIN -->
   <div id="loginSection">
-    <div class="login-icon">🔐</div>
-    <h2>Test kodi</h2>
-    <p>Davom etish uchun maxsus kodni kiriting:</p>
-    <input type="text" id="testCodeInput" placeholder="Kodni yozing..." autocomplete="off">
-    <button class="main-btn blue-btn" onclick="checkLogin()">Kirish</button>
+    <h2>🔐 Testga kirish</h2>
+    <input type="text" id="testCode" placeholder="Test kodini kiriting">
+    <button class="btn btn-blue" onclick="startTest()">Kirish</button>
   </div>
 
-  <!-- 2. TEST PAGE -->
-  <div id="testSection">
-    <h3 id="userDisplay" style="text-align: center; color: #666;"></h3>
-    <div id="questionsContainer"></div>
+  <!-- TEST -->
+  <div id="testSection" style="display:none;">
+    <h3 id="headerTitle" style="text-align:center; border-bottom: 2px solid var(--primary); padding-bottom: 10px;">Javoblar varaqasi</h3>
+    <div id="questions"></div>
     
-    <div style="display:flex; justify-content: space-between; margin-top: 20px;">
-        <button class="main-btn red-btn" onclick="clearAll()">♻️ Tozalash</button>
-        <button id="submitBtn" class="main-btn green-btn" style="width: 48%; margin-top: 10px;" onclick="submitTest()">📤 Topshirish</button>
+    <div class="footer-btns">
+      <button class="btn btn-red" onclick="location.reload()">♻️ Tozalash</button>
+      <button id="submitBtn" class="btn btn-green" onclick="submitTest()">📤 Topshirish</button>
     </div>
   </div>
 
-  <!-- 3. SUCCESS MESSAGE -->
+  <!-- SUCCESS -->
   <div id="submitInfo">
-    <p>🎉 Rahmat!</p>
-    <p>Test javoblari yuborildi.</p>
+    <b>✅ Yakunlandi!</b><br><small>Javoblaringiz muvaffaqiyatli saqlandi.</small>
   </div>
 </div>
 
@@ -142,127 +77,116 @@
   tg.ready();
   tg.expand();
 
-  // --- SOZLAMALAR ---
-  const CORRECT_CODE = "test004"; // Testga kirish kodi (xohlaganingizga o'zgartiring)
-  const numClosed = 3; 
-  const numOpen = 2;   
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxDClCkFKKHikpGR5kYrkqmzPPRK7s06f8C9QUMfKihufFxyxHLbGx-dhkZjZyZLHHW/exec"; 
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxDClCkFKKHikpGR5kYrkqmzPPRK7s06f8C9QUMfKihufFxyxHLbGx-dhkZjZyZLHHW/exec"; // Google Script manzilingiz
+  const LOGIN_KOD = "test1234"; // Test kodi
 
   let answers = {};
-  let userCode = "";
 
-  // 1. KIRISHNI TEKSHIRISH
-  function checkLogin() {
-    const input = document.getElementById('testCodeInput').value.trim();
-    if (input === CORRECT_CODE) {
-      userCode = input;
+  function startTest() {
+    const code = document.getElementById('testCode').value;
+    if (code === LOGIN_KOD) {
       document.getElementById('loginSection').style.display = 'none';
       document.getElementById('testSection').style.display = 'block';
-      
-      const user = tg.initDataUnsafe.user;
-      if(user) {
-        document.getElementById('userDisplay').innerText = `O'quvchi: ${user.first_name}`;
-      }
-      createQuestions();
+      renderQuestions();
     } else {
-      alert("❌ Test kodi noto'g'ri!");
-      document.getElementById('testCodeInput').value = "";
+      alert("Kod noto'g'ri!");
     }
   }
 
-  // 2. SAVOLLARNI QURISH
-  function createQuestions() {
-    const container = document.getElementById('questionsContainer');
-    container.innerHTML = '';
-
-    for (let i = 1; i <= numClosed; i++) {
-      const q = document.createElement('div');
-      q.className = 'question';
-      q.innerHTML = `
-        <b>${i}-savol:</b>
-        <div class="abcd-container">
-          <button class="abcd-btn" onclick="selectAnswer(${i},'A',this)">A</button>
-          <button class="abcd-btn" onclick="selectAnswer(${i},'B',this)">B</button>
-          <button class="abcd-btn" onclick="selectAnswer(${i},'C',this)">C</button>
-          <button class="abcd-btn" onclick="selectAnswer(${i},'D',this)">D</button>
-        </div>`;
-      container.appendChild(q);
+  function renderQuestions() {
+    const container = document.getElementById('questions');
+    
+    // 1-32: Yopiq A,B,C,D
+    for (let i = 1; i <= 32; i++) {
+      addMCQ(container, i, ['A', 'B', 'C', 'D']);
     }
 
-    for (let i = numClosed + 1; i <= numClosed + numOpen; i++) {
-      const q = document.createElement('div');
-      q.className = 'question';
-      q.innerHTML = `
-        <b>${i}-savol (ochiq):</b>
-        <math-field id="answer-${i}" virtual-keyboard-mode="onfocus"></math-field>`;
-      container.appendChild(q);
+    // 33-35: Yopiq A,B,C,D,E,F (Matching)
+    for (let i = 33; i <= 35; i++) {
+      addMCQ(container, i, ['A', 'B', 'C', 'D', 'E', 'F']);
+    }
 
-      const mf = document.getElementById(`answer-${i}`);
-      mf.addEventListener('input', (ev) => {
-        answers[i] = ev.target.value;
-      });
+    // 36-45: Ochiq (a va b bandli)
+    for (let i = 36; i <= 45; i++) {
+      addOpenQuestion(container, i);
     }
   }
 
-  function selectAnswer(qNum, ans, btn) {
-    answers[qNum] = ans;
-    btn.parentElement.querySelectorAll('.abcd-btn').forEach(b => b.classList.remove('selected'));
+  function addMCQ(parent, num, options) {
+    const div = document.createElement('div');
+    div.className = 'q-card';
+    div.innerHTML = `<span class="q-title">${num}-savol:</span>
+      <div class="btn-group" id="q-${num}">
+        ${options.map(opt => `<button class="opt-btn" onclick="setMCQ(${num}, '${opt}', this)">${opt}</button>`).join('')}
+      </div>`;
+    parent.appendChild(div);
+  }
+
+  function addOpenQuestion(parent, num) {
+    const div = document.createElement('div');
+    div.className = 'q-card';
+    div.innerHTML = `<span class="q-title">${num}-savol:</span>
+      <div class="open-q-container">
+        <div class="sub-q"><span class="sub-label">a)</span><math-field id="q-${num}-a" oninput="setOpen(${num}, 'a')"></math-field></div>
+        <div class="sub-q"><span class="sub-label">b)</span><math-field id="q-${num}-b" oninput="setOpen(${num}, 'b')"></math-field></div>
+      </div>`;
+    parent.appendChild(div);
+  }
+
+  function setMCQ(num, val, btn) {
+    answers[num] = val;
+    const group = document.getElementById(`q-${num}`);
+    group.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('selected'));
     btn.classList.add('selected');
   }
 
-  // 3. TOPSHIRISH
+  function setOpen(num, part) {
+    if (!answers[num]) answers[num] = { a: "", b: "" };
+    const val = document.getElementById(`q-${num}-${part}`).value;
+    answers[num][part] = val;
+  }
+
   async function submitTest() {
     const user = tg.initDataUnsafe.user;
-    if (!user) return;
-
-    const totalQuestions = numClosed + numOpen;
-    let finalAnswers = {};
-    for (let i = 1; i <= totalQuestions; i++) {
-      finalAnswers[i] = answers[i] || "Javob berilmadi";
-    }
+    if (!user) return alert("Faqat Telegramda ishlaydi");
 
     const btn = document.getElementById('submitBtn');
     btn.disabled = true;
     btn.innerText = "Yuborilmoqda...";
 
-    const payload = {
-      userId: user.id,
-      fullName: user.first_name + (user.last_name ? " " + user.last_name : ""),
-      testCode: userCode, // Qaysi kod bilan kirganini ham yuboramiz
-      answers: finalAnswers
-    };
+    // Barcha savollarni tekshirish (bo'sh qolgan bo'lsa "" yuborish)
+    let finalData = {};
+    for(let i=1; i<=45; i++) {
+        if (i <= 35) finalData[i] = answers[i] || "";
+        else {
+            const a = (answers[i] && answers[i].a) ? answers[i].a : "";
+            const b = (answers[i] && answers[i].b) ? answers[i].b : "";
+            finalData[i] = `a) ${a} | b) ${b}`;
+        }
+    }
 
     try {
       await fetch(SCRIPT_URL, {
         method: 'POST',
         mode: 'no-cors',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({
+          user: user.first_name + " " + (user.last_name || ""),
+          userId: user.id,
+          answers: finalData
+        })
       });
 
       document.getElementById('testSection').style.display = 'none';
       document.getElementById('submitInfo').style.display = 'block';
-
-      setTimeout(() => { tg.close(); }, 3000);
+      setTimeout(() => tg.close(), 3000);
     } catch (e) {
-      alert("Xatolik: " + e);
+      alert("Xato: " + e);
       btn.disabled = false;
-      btn.innerText = "📤 Topshirish";
     }
   }
 
-  function clearAll() {
-    if(confirm("Javoblarni tozalashni xohlaysizmi?")) {
-        location.reload();
-    }
-  }
-
-  // Ilova ochilganda har doim xotirani tozalash
-  window.onload = () => {
-    localStorage.removeItem('testAnswers');
-  };
+  window.onload = () => { localStorage.clear(); };
 </script>
-
 </body>
 </html>
-
