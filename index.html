@@ -3,211 +3,146 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Milliy Sertifikat - Onlayn Test</title>
+  <title>Test Tizimi</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/mathlive"></script>
   <style>
-    :root { --primary: #3498db; --success: #2ecc71; --danger: #e74c3c; --bg: #f4f7f9; }
-    body { margin: 0; font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); padding: 10px; }
-    .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); }
-    
-    .status-box { padding: 15px; border-radius: 10px; margin-bottom: 20px; text-align: center; font-weight: bold; font-size: 14px; }
-    .status-waiting { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
-    .status-active { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-    .status-expired { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-
+    :root { --primary: #3498db; --success: #2ecc71; --bg: #f4f7f9; }
+    body { margin: 0; font-family: system-ui, sans-serif; background: var(--bg); padding: 10px; }
+    .container { max-width: 550px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+    .status-box { padding: 12px; border-radius: 8px; margin-bottom: 20px; text-align: center; font-weight: bold; font-size: 14px; background: #e8f4fd; color: #2980b9; }
     .q-card { border-bottom: 1px solid #eee; padding: 15px 0; }
     .btn-group { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
     .opt-btn { padding: 10px 14px; border: 1px solid #ccc; border-radius: 8px; background: white; cursor: pointer; font-weight: bold; min-width: 45px; }
     .opt-btn.selected { background: var(--primary); color: white; border-color: #2980b9; }
-
     .sub-q { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
     math-field { flex: 1; padding: 8px; border-radius: 8px; border: 1px solid #ccc; background: #fff; font-size: 18px; }
-
     .btn { width: 100%; padding: 15px; border: none; border-radius: 10px; color: white; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
     .btn-blue { background: var(--primary); }
     .btn-green { background: var(--success); }
     input[type="text"] { width: 90%; padding: 15px; margin: 15px 0; border: 2px solid #ddd; border-radius: 10px; font-size: 20px; text-align: center; }
-
-    #loadingSection, #alreadySubmitted, #submitInfo { display: none; text-align: center; padding: 40px 0; }
-    .loader { border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: auto; }
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    #loading, #alreadyDone, #done { display: none; text-align: center; padding: 40px 0; }
   </style>
 </head>
 <body>
 
 <div class="container">
-  <!-- LOADING -->
-  <div id="loadingSection" style="display: block;">
-    <div class="loader"></div>
-    <p>Ma'lumotlar tekshirilmoqda...</p>
-  </div>
+  <div id="loading" style="display: block;">🔍 Tekshirilmoqda...</div>
 
-  <!-- ALREADY SUBMITTED -->
-  <div id="alreadySubmitted">
-    <h2 style="color: var(--primary)">🚫 Qatnashib bo'lingan</h2>
-    <p>Siz ushbu testda qatnashib bo'ldingiz. <br>Natijangizni kuting.</p>
+  <div id="alreadyDone">
+    <h2>🚫 Topshirib bo'lingan</h2>
+    <p>Sizning javoblaringiz bazada mavjud.</p>
     <button class="btn btn-blue" onclick="tg.close()">Yopish</button>
   </div>
 
-  <!-- LOGIN & STATUS -->
   <div id="loginSection" style="display: none;">
-    <div id="statusIndicator" class="status-box"></div>
-    <div id="loginControls" style="display: none;">
+    <div id="status" class="status-box"></div>
+    <div id="controls" style="display: none;">
       <h2 style="text-align: center;">🔐 Kirish</h2>
-      <input type="text" id="testCode" placeholder="Kodni kiriting">
-      <button class="btn btn-blue" onclick="startTest()">Testni boshlash</button>
+      <input type="text" id="code" placeholder="Kodni kiriting">
+      <button class="btn btn-blue" onclick="start()">Testni ko'rish</button>
     </div>
   </div>
 
-  <!-- TEST SECTION -->
   <div id="testSection" style="display:none;">
-    <h3 style="text-align:center; color: var(--primary);">Javoblar varaqasi</h3>
     <div id="questions"></div>
-    <button id="submitBtn" class="btn btn-green" onclick="submitTest()">📤 Topshirish</button>
+    <button id="submitBtn" class="btn btn-green" onclick="submit()">📤 Topshirish</button>
   </div>
 
-  <!-- SUCCESS -->
-  <div id="submitInfo">
-    <h2 style="color: var(--success)">✅ Qabul qilindi!</h2>
-    <p>Javoblar jadvalga yozildi.</p>
+  <div id="done">
+    <h2 style="color: var(--success)">✅ Saqlandi</h2>
+    <p>Javoblar qabul qilindi.</p>
   </div>
 </div>
 
 <script>
   const tg = window.Telegram.WebApp;
-  tg.ready();
-  tg.expand();
+  tg.ready(); tg.expand();
 
   const CONFIG = {
-    loginKod: "1234",
-    numType1: 32, numType2: 3, numType3: 10,
-    startTime: new Date(2026, 0, 10, 20, 0, 0),
-    endTime: new Date(2026, 0, 10, 23, 0, 0),
-    scriptUrl: "https://script.google.com/macros/s/AKfycbyQGByS34_uPF79R_3tcqbKFRZtrPAi_uIK9UotmBqJlBYUU_XTD0fEOHEy5rojHUAv/exec" 
+    kod: "1234",
+    n1: 32, n2: 3, n3: 10,
+    start: new Date(2026, 0, 10, 23, 0, 0),
+    end: new Date(2026, 0, 10, 24, 0, 0),
+    url: "https://script.google.com/macros/s/AKfycbyKajimjH5bANA2L0dAOO5dwRBDvRpiGDTs5PBvhRUvWMgkpcdtjz3WGFc2iFiffL7w/exec" 
   };
 
   let answers = {};
 
-  async function checkUserStatus() {
-    const userId = tg.initDataUnsafe.user?.id;
-    if (!userId) {
-      alert("Telegram orqali oching!");
-      return;
-    }
-
+  async function check() {
+    const uid = tg.initDataUnsafe.user?.id;
     try {
-      const response = await fetch(`${CONFIG.scriptUrl}?userId=${userId}`);
-      const status = await response.text();
-
-      document.getElementById('loadingSection').style.display = 'none';
-
+      const res = await fetch(`${CONFIG.url}?userId=${uid}`);
+      const status = await res.text();
+      document.getElementById('loading').style.display = 'none';
       if (status === "EXISTS") {
-        document.getElementById('alreadySubmitted').style.display = 'block';
+        document.getElementById('alreadyDone').style.display = 'block';
       } else {
         document.getElementById('loginSection').style.display = 'block';
-        updateStatusDisplay();
+        const now = new Date();
+        const s = document.getElementById('status');
+        if (now < CONFIG.start) s.innerText = "⏳ Test hali boshlanmadi";
+        else if (now > CONFIG.end) s.innerText = "❌ Vaqt tugagan";
+        else { s.innerText = "✅ Test faol"; document.getElementById('controls').style.display = 'block'; }
       }
-    } catch (e) {
-      console.error(e);
-      document.getElementById('loadingSection').innerHTML = "Xatolik yuz berdi. Qayta urinib ko'ring.";
-    }
+    } catch (e) { document.getElementById('loading').innerText = "Xato!"; }
   }
 
-  function updateStatusDisplay() {
-    const now = new Date();
-    const statusBox = document.getElementById('statusIndicator');
-    const loginControls = document.getElementById('loginControls');
-
-    if (now < CONFIG.startTime) {
-      statusBox.className = "status-box status-waiting";
-      statusBox.innerHTML = `⏳ Test hali boshlanmadi<br>Boshlanish: ${CONFIG.startTime.toLocaleString('uz-UZ')}`;
-    } else if (now >= CONFIG.startTime && now <= CONFIG.endTime) {
-      statusBox.className = "status-box status-active";
-      statusBox.innerHTML = `✅ Test faol<br>Tugash: ${CONFIG.endTime.toLocaleString('uz-UZ')}`;
-      loginControls.style.display = 'block';
-    } else {
-      statusBox.className = "status-box status-expired";
-      statusBox.innerHTML = `❌ Test muddati tugagan`;
-    }
-  }
-
-  function startTest() {
-    if (document.getElementById('testCode').value === CONFIG.loginKod) {
+  function start() {
+    if (document.getElementById('code').value === CONFIG.kod) {
       document.getElementById('loginSection').style.display = 'none';
       document.getElementById('testSection').style.display = 'block';
-      renderQuestions();
-    } else {
-      alert("Kod noto'g'ri!");
-    }
+      const c = document.getElementById('questions');
+      let n = 1;
+      for (let i=0; i<CONFIG.n1; i++) addM(c, n++, ['A','B','C','D']);
+      for (let i=0; i<CONFIG.n2; i++) addM(c, n++, ['A','B','C','D','E','F']);
+      for (let i=0; i<CONFIG.n3; i++) addO(c, n++);
+    } else alert("Kod xato!");
   }
 
-  function renderQuestions() {
-    const container = document.getElementById('questions');
-    let qNum = 1;
-    for (let i = 0; i < CONFIG.numType1; i++) addMCQ(container, qNum++, ['A', 'B', 'C', 'D']);
-    for (let i = 0; i < CONFIG.numType2; i++) addMCQ(container, qNum++, ['A', 'B', 'C', 'D', 'E', 'F']);
-    for (let i = 0; i < CONFIG.numType3; i++) addOpen(container, qNum++);
-  }
-
-  function addMCQ(p, n, opts) {
-    const d = document.createElement('div');
-    d.className = 'q-card';
-    d.innerHTML = `<b>${n}-savol:</b><div class="btn-group" id="q-${n}">
-      ${opts.map(o => `<button class="opt-btn" onclick="setMCQ(${n},'${o}',this)">${o}</button>`).join('')}</div>`;
+  function addM(p, n, os) {
+    const d = document.createElement('div'); d.className = 'q-card';
+    d.innerHTML = `<b>${n}.</b><div class="btn-group" id="q-${n}">
+      ${os.map(o => `<button class="opt-btn" onclick="setM(${n},'${o}',this)">${o}</button>`).join('')}</div>`;
     p.appendChild(d);
   }
 
-  function addOpen(p, n) {
-    const d = document.createElement('div');
-    d.className = 'q-card';
-    d.innerHTML = `<b>${n}-savol:</b><div class="sub-q">a)<math-field id="q-${n}-a" oninput="setOpen(${n},'a')"></math-field></div>
-      <div class="sub-q">b)<math-field id="q-${n}-b" oninput="setOpen(${n},'b')"></math-field></div>`;
+  function addO(p, n) {
+    const d = document.createElement('div'); d.className = 'q-card';
+    d.innerHTML = `<b>${n}.</b><div class="sub-q">a)<math-field id="q-${n}-a" oninput="setO(${n},'a')"></math-field></div>
+      <div class="sub-q">b)<math-field id="q-${n}-b" oninput="setO(${n},'b')"></math-field></div>`;
     p.appendChild(d);
   }
 
-  function setMCQ(n, v, b) {
+  function setM(n, v, b) {
     answers[n] = v;
     document.getElementById(`q-${n}`).querySelectorAll('.opt-btn').forEach(x => x.classList.remove('selected'));
     b.classList.add('selected');
   }
 
-  function setOpen(n, p) {
-    if (!answers[n]) answers[n] = { a: "", b: "" };
-    answers[n][p] = document.getElementById(`q-${n}-${p}`).value;
-  }
+  function setO(n, p) { if(!answers[n]) answers[n]={a:"",b:""}; answers[n][p]=document.getElementById(`q-${n}-${p}`).value; }
 
-  async function submitTest() {
-    if (new Date() > CONFIG.endTime) return alert("Vaqt tugadi!");
-    const user = tg.initDataUnsafe.user;
+  async function submit() {
+    if (new Date() > CONFIG.end) return alert("Vaqt tugadi!");
     const btn = document.getElementById('submitBtn');
-    btn.disabled = true;
-    btn.innerText = "Yuborilmoqda...";
-
-    let final = {};
-    const total = CONFIG.numType1 + CONFIG.numType2 + CONFIG.numType3;
-    for (let i = 1; i <= total; i++) {
-      if (typeof answers[i] === 'object') final[i] = `a: ${answers[i].a || ""} | b: ${answers[i].b || ""}`;
-      else final[i] = answers[i] || "";
+    btn.disabled = true; btn.innerText = "Yuborilmoqda...";
+    let f = {};
+    const total = CONFIG.n1 + CONFIG.n2 + CONFIG.n3;
+    for (let i=1; i<=total; i++) {
+      if (typeof answers[i] === 'object') f[i] = `a:${answers[i].a || ""} b:${answers[i].b || ""}`;
+      else f[i] = answers[i] || "";
     }
-
     try {
-      await fetch(CONFIG.scriptUrl, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.id, userName: user.first_name + " " + (user.last_name || ""), time: new Date().toLocaleString('uz-UZ'), answers: final })
+      await fetch(CONFIG.url, {
+        method: 'POST', mode: 'no-cors',
+        body: JSON.stringify({ userId: tg.initDataUnsafe.user.id, answers: f })
       });
       document.getElementById('testSection').style.display = 'none';
-      document.getElementById('submitInfo').style.display = 'block';
-      setTimeout(() => tg.close(), 3000);
-    } catch (e) {
-      alert("Xato!");
-      btn.disabled = false;
-    }
+      document.getElementById('done').style.display = 'block';
+      setTimeout(() => tg.close(), 2500);
+    } catch (e) { alert("Xato!"); btn.disabled = false; }
   }
-
-  checkUserStatus();
+  check();
 </script>
 </body>
 </html>
