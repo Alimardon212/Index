@@ -149,13 +149,24 @@
   }
 
   function startStudentTest() {
-    if (document.getElementById('userKod').value === currentConfig.kod) {
-      document.getElementById('loginForm').classList.add('hidden');
-      document.getElementById('testArea').classList.remove('hidden');
-      const cont = document.getElementById('studentQuestions');
-      generateUI(cont, currentConfig.n1, currentConfig.n2, currentConfig.n3, "user");
-    } else alert("Kod xato!");
-  }
+    const inputField = document.getElementById('userKod');
+    const userEntered = inputField.value.trim(); // Bo'sh joylarni olib tashlash
+    
+    // Serverdan kelgan kodni matnga o'tkazish va bo'sh joylarni tozalash
+    const correctKod = String(currentConfig.kod || "").trim();
+
+    console.log("Kiritildi:", userEntered); // Tekshirish uchun
+    console.log("Asli:", correctKod);       // Tekshirish uchun
+
+    if (userEntered === correctKod && correctKod !== "") {
+        document.getElementById('loginForm').classList.add('hidden');
+        document.getElementById('testArea').classList.remove('hidden');
+        const cont = document.getElementById('studentQuestions');
+        generateUI(cont, currentConfig.n1, currentConfig.n2, currentConfig.n3, "user");
+    } else {
+        alert("❌ Test kodi noto'g'ri yoki hali belgilanmagan!");
+    }
+}
 
   async function submitStudentTest() {
     const btn = document.getElementById('submitBtn');
@@ -216,4 +227,5 @@
 </script>
 </body>
 </html>
+
 
