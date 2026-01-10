@@ -7,38 +7,33 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/mathlive"></script>
   <style>
-    :root { --primary: #3498db; --success: #2ecc71; --danger: #e74c3c; --warning: #f39c12; --bg: #f4f7f9; }
+    :root { --primary: #3498db; --success: #2ecc71; --danger: #e74c3c; --bg: #f4f7f9; }
     body { margin: 0; font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); padding: 10px; }
     .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); }
     
     /* Status Box */
-    .status-box { padding: 15px; border-radius: 10px; margin-bottom: 20px; text-align: center; font-weight: bold; }
+    .status-box { padding: 15px; border-radius: 10px; margin-bottom: 20px; text-align: center; font-weight: bold; font-size: 14px; }
     .status-waiting { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
     .status-active { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
     .status-expired { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
 
-    /* Login Section */
-    #loginSection { text-align: center; }
-    input[type="text"] { width: 85%; padding: 15px; margin: 15px 0; border: 2px solid #ddd; border-radius: 10px; font-size: 20px; text-align: center; outline: none; }
-    input[type="text"]:focus { border-color: var(--primary); }
-
-    /* Questions */
+    /* Savollar */
     .q-card { border-bottom: 1px solid #eee; padding: 15px 0; }
     .q-title { font-weight: bold; margin-bottom: 10px; display: block; color: #34495e; }
     .btn-group { display: flex; flex-wrap: wrap; gap: 8px; }
-    .opt-btn { padding: 10px 14px; border: 1px solid #ccc; border-radius: 8px; background: white; cursor: pointer; font-weight: bold; transition: 0.2s; }
+    .opt-btn { padding: 10px 14px; border: 1px solid #ccc; border-radius: 8px; background: white; cursor: pointer; font-weight: bold; min-width: 45px; }
     .opt-btn.selected { background: var(--primary); color: white; border-color: #2980b9; }
 
-    /* Open Questions */
+    /* Ochiq savollar */
     .sub-q { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
     .sub-label { font-weight: bold; color: var(--primary); width: 25px; }
     math-field { flex: 1; padding: 8px; border-radius: 8px; border: 1px solid #ccc; background: #fff; font-size: 18px; }
 
-    /* Buttons */
+    /* Tugmalar */
     .btn { width: 100%; padding: 15px; border: none; border-radius: 10px; color: white; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
     .btn-blue { background: var(--primary); }
     .btn-green { background: var(--success); }
-    .btn-disabled { background: #ccc !important; cursor: not-allowed; }
+    input[type="text"] { width: 85%; padding: 15px; margin: 15px 0; border: 2px solid #ddd; border-radius: 10px; font-size: 20px; text-align: center; outline: none; }
 
     #submitInfo { display: none; text-align: center; padding: 40px 0; }
   </style>
@@ -46,18 +41,13 @@
 <body>
 
 <div class="container">
-  <!-- LOGIN & STATUS SECTION -->
+  <!-- LOGIN & STATUS -->
   <div id="loginSection">
-    <div id="statusIndicator" class="status-box">Vaqt tekshirilmoqda...</div>
-    
+    <div id="statusIndicator" class="status-box">Yuklanmoqda...</div>
     <div id="loginControls" style="display: none;">
-      <h2>🔐 Testga kirish</h2>
-      <input type="text" id="testCode" placeholder="Test kodini kiriting">
+      <h2 style="text-align: center;">🔐 Kirish</h2>
+      <input type="text" id="testCode" placeholder="Kodni kiriting">
       <button class="btn btn-blue" onclick="startTest()">Testni boshlash</button>
-    </div>
-
-    <div id="waitMsg" style="display: none;">
-      <p>☕ Iltimos, kuting. Test belgilangan vaqtda avtomatik ochiladi.</p>
     </div>
   </div>
 
@@ -68,10 +58,10 @@
     <button id="submitBtn" class="btn btn-green" onclick="submitTest()">📤 Topshirish</button>
   </div>
 
-  <!-- SUCCESS SECTION -->
+  <!-- SUCCESS -->
   <div id="submitInfo">
     <h2 style="color: var(--success)">✅ Qabul qilindi!</h2>
-    <p>Sizning natijalaringiz va topshirish vaqtingiz muvaffaqiyatli saqlandi.</p>
+    <p>Javoblar va vaqt jadvalga yozildi.</p>
   </div>
 </div>
 
@@ -80,49 +70,46 @@
   tg.ready();
   tg.expand();
 
-  // ================= SOZLAMALAR =================
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby6Fzy9ihi-No_A5nEqxKRdhBuiDOEDz0pd_KI9obFzObJibA9pwr_Bup-vPNt_udMa/exec"; // Google Script URL
-  const LOGIN_KOD = "test12345"; // Kirish kodi
-  
-  // VAQTNI SHU YERDAN SOZLANG (Yil, Oy-1, Kun, Soat, Daqiqa)
-  const START_TIME = new Date(2026, 0, 10, 20, 20, 0); // 2026-yil 10-yanvar 20:00
-  const END_TIME = new Date(2026, 0, 10, 20, 28, 0);   // 2026-yil 10-yanvar 22:00
-  // =============================================
+  // ================= ADMIN SOZLAMALARI =================
+  const CONFIG = {
+    loginKod: "1234",
+    // Savollar sonini shu yerda o'zgartiring (0 bo'lsa ko'rinmaydi)
+    numType1: 32,  // 1-turi: A, B, C, D variantli
+    numType2: 3,   // 2-turi: A, B, C, D, E, F variantli
+    numType3: 10,  // 3-turi: Ochiq (a va b bandli)
+    
+    // Vaqtni sozlash (Yil, Oy-1, Kun, Soat, Daqiqa)
+    startTime: new Date(2026, 0, 10, 23, 0, 0),
+    endTime: new Date(2026, 0, 10, 24, 0, 0),
+    
+    scriptUrl: "https://script.google.com/macros/s/AKfycby6Fzy9ihi-No_A5nEqxKRdhBuiDOEDz0pd_KI9obFzObJibA9pwr_Bup-vPNt_udMa/exec" // Google Script manzilingiz
+  };
+  // =====================================================
 
   let answers = {};
+  let totalCount = CONFIG.numType1 + CONFIG.numType2 + CONFIG.numType3;
 
-  function checkTime() {
+  function checkStatus() {
     const now = new Date();
     const statusBox = document.getElementById('statusIndicator');
     const loginControls = document.getElementById('loginControls');
-    const waitMsg = document.getElementById('waitMsg');
 
-    if (now < START_TIME) {
-      // Hali boshlanmagan
+    if (now < CONFIG.startTime) {
       statusBox.className = "status-box status-waiting";
-      statusBox.innerHTML = `⏳ Test hali boshlanmadi<br><small>Boshlanish vaqti: ${START_TIME.toLocaleString('uz-UZ')}</small>`;
-      loginControls.style.display = 'none';
-      waitMsg.style.display = 'block';
-    } 
-    else if (now >= START_TIME && now <= END_TIME) {
-      // Test davom etmoqda
+      statusBox.innerHTML = `⏳ Test hali boshlanmadi<br>Boshlanish: ${CONFIG.startTime.toLocaleString('uz-UZ')}`;
+    } else if (now >= CONFIG.startTime && now <= CONFIG.endTime) {
       statusBox.className = "status-box status-active";
-      statusBox.innerHTML = `✅ Test faol<br><small>Tugash vaqti: ${END_TIME.toLocaleString('uz-UZ')}</small>`;
+      statusBox.innerHTML = `✅ Test faol<br>Tugash: ${CONFIG.endTime.toLocaleString('uz-UZ')}`;
       loginControls.style.display = 'block';
-      waitMsg.style.display = 'none';
-    } 
-    else {
-      // Vaqt tugagan
+    } else {
       statusBox.className = "status-box status-expired";
-      statusBox.innerHTML = `❌ Test muddati tugagan<br><small>Yopilgan vaqt: ${END_TIME.toLocaleString('uz-UZ')}</small>`;
-      loginControls.style.display = 'none';
-      waitMsg.style.display = 'none';
+      statusBox.innerHTML = `❌ Test muddati tugagan<br>Yopilgan: ${CONFIG.endTime.toLocaleString('uz-UZ')}`;
     }
   }
 
   function startTest() {
     const code = document.getElementById('testCode').value;
-    if (code === LOGIN_KOD) {
+    if (code === CONFIG.loginKod) {
       document.getElementById('loginSection').style.display = 'none';
       document.getElementById('testSection').style.display = 'block';
       renderQuestions();
@@ -133,9 +120,22 @@
 
   function renderQuestions() {
     const container = document.getElementById('questions');
-    for (let i = 1; i <= 32; i++) addMCQ(container, i, ['A', 'B', 'C', 'D']);
-    for (let i = 33; i <= 35; i++) addMCQ(container, i, ['A', 'B', 'C', 'D', 'E', 'F']);
-    for (let i = 36; i <= 45; i++) addOpen(container, i);
+    let qNum = 1;
+
+    // 1-turi (A-D)
+    for (let i = 0; i < CONFIG.numType1; i++) {
+      addMCQ(container, qNum++, ['A', 'B', 'C', 'D']);
+    }
+
+    // 2-turi (A-F)
+    for (let i = 0; i < CONFIG.numType2; i++) {
+      addMCQ(container, qNum++, ['A', 'B', 'C', 'D', 'E', 'F']);
+    }
+
+    // 3-turi (Open a/b)
+    for (let i = 0; i < CONFIG.numType3; i++) {
+      addOpen(container, qNum++);
+    }
   }
 
   function addMCQ(p, n, opts) {
@@ -167,34 +167,32 @@
   }
 
   async function submitTest() {
-    const now = new Date();
-    if (now > END_TIME) {
-      alert("Vaqt tugadi! Javoblar qabul qilinmadi.");
-      location.reload();
-      return;
-    }
+    if (new Date() > CONFIG.endTime) return alert("Vaqt tugadi!");
 
     const user = tg.initDataUnsafe.user;
     const btn = document.getElementById('submitBtn');
     btn.disabled = true;
-    btn.className = "btn btn-disabled";
     btn.innerText = "Yuborilmoqda...";
 
     let final = {};
-    for(let i=1; i<=45; i++) {
-        if(i <= 35) final[i] = answers[i] || "";
-        else final[i] = `a: ${answers[i]?.a || ""} | b: ${answers[i]?.b || ""}`;
+    // Dinamik ravishda barcha savollarni yig'ish
+    for (let i = 1; i <= totalCount; i++) {
+      if (typeof answers[i] === 'object') {
+        final[i] = `a: ${answers[i].a || ""} | b: ${answers[i].b || ""}`;
+      } else {
+        final[i] = answers[i] || "";
+      }
     }
 
     try {
-      await fetch(SCRIPT_URL, {
+      await fetch(CONFIG.scriptUrl, {
         method: 'POST',
         mode: 'no-cors',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: user?.id || "Noma'lum",
           userName: user ? (user.first_name + " " + (user.last_name || "")) : "Noma'lum",
-          time: now.toLocaleString('uz-UZ'),
+          time: new Date().toLocaleString('uz-UZ'),
           answers: final
         })
       });
@@ -204,21 +202,10 @@
     } catch (e) {
       alert("Xato: " + e);
       btn.disabled = false;
-      btn.className = "btn btn-green";
-      btn.innerText = "📤 Topshirish";
     }
   }
 
-  // Vaqtni har soniyada tekshirib turish shart emas, lekin sahifa ochilganda va 
-  // kirishda tekshirish kifoya
-  checkTime();
+  checkStatus();
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
