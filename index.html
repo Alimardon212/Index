@@ -4,125 +4,183 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Test Tizimi</title>
-  <!-- Telegram SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <!-- MathLive SDK (Matematik amallar uchun) -->
   <script defer src="https://cdn.jsdelivr.net/npm/mathlive"></script>
   <style>
+    :root {
+      --primary-color: #3498db;
+      --success-color: #2ecc71;
+      --danger-color: #e74c3c;
+      --bg-color: #f0f2f5;
+    }
     body {
       margin: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #f0f2f5;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg-color);
       padding: 10px;
-      color: var(--tg-theme-text-color, #000);
+      color: #333;
     }
     .container {
-      max-width: 600px;
+      max-width: 500px;
       margin: auto;
       background: white;
-      padding: 15px;
-      border-radius: 12px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
     }
-    h2 { text-align: center; color: #333; font-size: 20px; }
-    .question {
+
+    /* Login Page Style */
+    #loginSection {
+      text-align: center;
+      padding: 20px 0;
+    }
+    .login-icon { font-size: 50px; margin-bottom: 10px; }
+    input[type="text"] {
+      width: 90%;
       padding: 12px;
+      margin: 15px 0;
+      border: 2px solid #ddd;
       border-radius: 10px;
-      margin-bottom: 8px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 16px;
-      border: 1px solid #eee;
+      font-size: 18px;
+      text-align: center;
+      outline: none;
     }
-    .question:nth-child(odd) { background: #f9f9f9; }
+    input[type="text"]:focus { border-color: var(--primary-color); }
+    
+    /* Test Page Style */
+    #testSection { display: none; }
+    .question {
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      border: 1px solid #eee;
+      background: #f9f9f9;
+    }
+    .abcd-container { display: flex; justify-content: flex-end; gap: 8px; margin-top: 5px; }
     .abcd-btn {
-      padding: 10px 14px;
-      margin-left: 5px;
+      padding: 10px 15px;
       border: 1px solid #ccc;
       border-radius: 8px;
       cursor: pointer;
       font-weight: bold;
-      background: #fff;
-      transition: 0.2s;
+      background: white;
     }
     .abcd-btn.selected {
-      background: #3498db;
+      background: var(--primary-color);
       color: white;
       border-color: #2980b9;
     }
     math-field {
       width: 100%;
-      padding: 10px;
-      border: 1px solid #ccc;
+      padding: 8px;
       border-radius: 8px;
       margin-top: 10px;
       font-size: 20px;
-      background: #fff;
+      background: white;
+      border: 1px solid #ccc;
     }
-    .action-btn {
-      padding: 14px;
-      margin-top: 20px;
-      width: 48%;
+
+    /* Global Buttons */
+    .main-btn {
+      width: 100%;
+      padding: 15px;
       border: none;
       border-radius: 10px;
       color: white;
-      cursor: pointer;
       font-size: 16px;
       font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
     }
-    .clear-btn { background: #e74c3c; }
-    .submit-btn { background: #2ecc71; }
-    .submit-btn:disabled { background: #ccc; cursor: not-allowed; }
+    .blue-btn { background: var(--primary-color); }
+    .green-btn { background: var(--success-color); }
+    .red-btn { background: var(--danger-color); margin-top: 10px; width: 48%; }
+    .main-btn:disabled { background: #ccc; }
+
     #submitInfo {
-      text-align: center;
-      font-weight: bold;
-      margin-top: 25px;
       display: none;
-      color: #27ae60;
-      font-size: 18px;
+      text-align: center;
+      color: var(--success-color);
+      font-weight: bold;
+      font-size: 20px;
+      margin-top: 30px;
     }
   </style>
 </head>
 <body>
 
 <div class="container">
-  <h2 id="title">Savollarga javob bering</h2>
-  <div id="questionsContainer"></div>
-  
-  <div style="display:flex;justify-content:space-between;">
-    <button class="action-btn clear-btn" onclick="clearAll()">♻️ Tozalash</button>
-    <button id="submitBtn" class="action-btn submit-btn" onclick="submitTest()">📤 Topshirish</button>
+  <!-- 1. LOGIN PAGE -->
+  <div id="loginSection">
+    <div class="login-icon">🔐</div>
+    <h2>Test kodi</h2>
+    <p>Davom etish uchun maxsus kodni kiriting:</p>
+    <input type="text" id="testCodeInput" placeholder="Kodni yozing..." autocomplete="off">
+    <button class="main-btn blue-btn" onclick="checkLogin()">Kirish</button>
   </div>
-  
-  <div id="submitInfo">✅ Test muvaffaqiyatli topshirildi!</div>
+
+  <!-- 2. TEST PAGE -->
+  <div id="testSection">
+    <h3 id="userDisplay" style="text-align: center; color: #666;"></h3>
+    <div id="questionsContainer"></div>
+    
+    <div style="display:flex; justify-content: space-between; margin-top: 20px;">
+        <button class="main-btn red-btn" onclick="clearAll()">♻️ Tozalash</button>
+        <button id="submitBtn" class="main-btn green-btn" style="width: 48%; margin-top: 10px;" onclick="submitTest()">📤 Topshirish</button>
+    </div>
+  </div>
+
+  <!-- 3. SUCCESS MESSAGE -->
+  <div id="submitInfo">
+    <p>🎉 Rahmat!</p>
+    <p>Test javoblari yuborildi.</p>
+  </div>
 </div>
 
 <script>
-  // Telegram WebApp sozlamalari
   const tg = window.Telegram.WebApp;
   tg.ready();
   tg.expand();
 
-  // SOZLAMALAR
-  const numClosed = 3;  // Yopiq savollar soni
-  const numOpen = 2;    // Ochiq savollar soni
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxDClCkFKKHikpGR5kYrkqmzPPRK7s06f8C9QUMfKihufFxyxHLbGx-dhkZjZyZLHHW/exec"; // <--- Google Script URL ni shu yerga qo'ying
+  // --- SOZLAMALAR ---
+  const CORRECT_CODE = "1234"; // Testga kirish kodi (xohlaganingizga o'zgartiring)
+  const numClosed = 3; 
+  const numOpen = 2;   
+  const SCRIPT_URL = "SIZNING_GOOGLE_SCRIPT_URL_MANZILINGIZ"; 
 
   let answers = {};
+  let userCode = "";
 
-  // 1. Savollarni yaratish funksiyasi
+  // 1. KIRISHNI TEKSHIRISH
+  function checkLogin() {
+    const input = document.getElementById('testCodeInput').value.trim();
+    if (input === CORRECT_CODE) {
+      userCode = input;
+      document.getElementById('loginSection').style.display = 'none';
+      document.getElementById('testSection').style.display = 'block';
+      
+      const user = tg.initDataUnsafe.user;
+      if(user) {
+        document.getElementById('userDisplay').innerText = `O'quvchi: ${user.first_name}`;
+      }
+      createQuestions();
+    } else {
+      alert("❌ Test kodi noto'g'ri!");
+      document.getElementById('testCodeInput').value = "";
+    }
+  }
+
+  // 2. SAVOLLARNI QURISH
   function createQuestions() {
     const container = document.getElementById('questionsContainer');
     container.innerHTML = '';
 
-    // Yopiq savollar (A, B, C, D)
     for (let i = 1; i <= numClosed; i++) {
       const q = document.createElement('div');
       q.className = 'question';
       q.innerHTML = `
-        <div><b>${i}.</b></div>
-        <div>
+        <b>${i}-savol:</b>
+        <div class="abcd-container">
           <button class="abcd-btn" onclick="selectAnswer(${i},'A',this)">A</button>
           <button class="abcd-btn" onclick="selectAnswer(${i},'B',this)">B</button>
           <button class="abcd-btn" onclick="selectAnswer(${i},'C',this)">C</button>
@@ -131,59 +189,36 @@
       container.appendChild(q);
     }
 
-    // Ochiq savollar (Math-field)
     for (let i = numClosed + 1; i <= numClosed + numOpen; i++) {
       const q = document.createElement('div');
       q.className = 'question';
-      q.style.flexDirection = 'column';
-      q.style.alignItems = 'flex-start';
       q.innerHTML = `
-        <div><b>${i}. Ochiq savol (javobni yozing):</b></div>
-        <math-field id="answer-${i}" virtual-keyboard-mode="onfocus"></math-field>
-      `;
+        <b>${i}-savol (ochiq):</b>
+        <math-field id="answer-${i}" virtual-keyboard-mode="onfocus"></math-field>`;
       container.appendChild(q);
 
-      // Math-field uchun qiymatni saqlash
       const mf = document.getElementById(`answer-${i}`);
       mf.addEventListener('input', (ev) => {
-        answers[i] = ev.target.value; 
-        saveAnswers();
+        answers[i] = ev.target.value;
       });
     }
   }
 
-  // 2. Yopiq savol javobini tanlash
   function selectAnswer(qNum, ans, btn) {
     answers[qNum] = ans;
-    // Tugma rangini o'zgartirish
     btn.parentElement.querySelectorAll('.abcd-btn').forEach(b => b.classList.remove('selected'));
     btn.classList.add('selected');
-    saveAnswers();
   }
 
-  // 3. Xotiraga vaqtincha saqlash
-  function saveAnswers() {
-    localStorage.setItem('testAnswers', JSON.stringify(answers));
-  }
-
-  // 4. Testni topshirish
+  // 3. TOPSHIRISH
   async function submitTest() {
     const user = tg.initDataUnsafe.user;
-    if (!user) { alert("Ilovani Telegram orqali oching!"); return; }
+    if (!user) return;
 
     const totalQuestions = numClosed + numOpen;
     let finalAnswers = {};
-    let answeredCount = 0;
-
-    // Faqat joriy savollar soniga mos javoblarni filtrlash
     for (let i = 1; i <= totalQuestions; i++) {
-      finalAnswers[i] = answers[i] || "";
-      if (finalAnswers[i] !== "") answeredCount++;
-    }
-
-    if (answeredCount === 0) {
-      alert("Hech bo'lmasa bitta javobni belgilang!");
-      return;
+      finalAnswers[i] = answers[i] || "Javob berilmadi";
     }
 
     const btn = document.getElementById('submitBtn');
@@ -193,11 +228,11 @@
     const payload = {
       userId: user.id,
       fullName: user.first_name + (user.last_name ? " " + user.last_name : ""),
+      testCode: userCode, // Qaysi kod bilan kirganini ham yuboramiz
       answers: finalAnswers
     };
 
     try {
-      // Google Sheets-ga yuborish
       await fetch(SCRIPT_URL, {
         method: 'POST',
         mode: 'no-cors',
@@ -205,39 +240,26 @@
         body: JSON.stringify(payload)
       });
 
-      // Muvaffaqiyatli bo'lgach
-      localStorage.removeItem('testAnswers');
-      document.getElementById('questionsContainer').style.display = 'none';
-      document.getElementById('title').style.display = 'none';
-      document.querySelectorAll('.action-btn').forEach(b => b.style.display = 'none');
+      document.getElementById('testSection').style.display = 'none';
       document.getElementById('submitInfo').style.display = 'block';
 
-      // 2.5 soniyadan keyin yopish
-      setTimeout(() => { tg.close(); }, 2500);
-
+      setTimeout(() => { tg.close(); }, 3000);
     } catch (e) {
-      alert("Xatolik yuz berdi: " + e);
+      alert("Xatolik: " + e);
       btn.disabled = false;
       btn.innerText = "📤 Topshirish";
     }
   }
 
-  // 5. Tozalash funksiyasi
   function clearAll() {
-    if (confirm("Barcha javoblarni o'chirib, boshidan boshlaysizmi?")) {
-      localStorage.removeItem('testAnswers');
-      location.reload();
+    if(confirm("Javoblarni tozalashni xohlaysizmi?")) {
+        location.reload();
     }
   }
 
-  // 6. Ilova ochilganda ishlaydigan qism
-  window.onload = function() {
-    // Har gal kirganda eski xotirani tozalash (Siz so'ragan usul)
+  // Ilova ochilganda har doim xotirani tozalash
+  window.onload = () => {
     localStorage.removeItem('testAnswers');
-    answers = {};
-    
-    // Savollarni qurish
-    createQuestions();
   };
 </script>
 
