@@ -3,139 +3,114 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Imtihon Sistemi</title>
+  <title>Admin & Student System</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/mathlive"></script>
   <style>
-    :root { --primary: #3498db; --success: #2ecc71; --danger: #e74c3c; --bg: #f4f7f9; }
-    body { font-family: sans-serif; background: var(--bg); padding: 10px; margin: 0; }
-    .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 15px; }
+    :root { --primary: #3498db; --success: #2ecc71; --bg: #f4f7f9; }
+    body { font-family: system-ui, sans-serif; background: var(--bg); padding: 10px; margin: 0; }
+    .container { max-width: 600px; margin: auto; background: white; padding: 15px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
     .hidden { display: none; }
-    .admin-panel { border: 2px solid var(--primary); padding: 15px; border-radius: 10px; margin-bottom: 20px; background: #ebf5fb; }
-    input, textarea { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
-    .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; color: white; cursor: pointer; font-weight: bold; margin-top: 10px; }
+    
+    /* Admin Section */
+    .admin-panel { background: #fff4e5; border: 2px solid #f39c12; padding: 15px; border-radius: 12px; margin-bottom: 20px; }
+    .admin-title { color: #d35400; text-align: center; margin-top: 0; }
+    
+    /* Questions Card */
+    .q-card { border-bottom: 1px solid #eee; padding: 12px 0; }
+    .opt-btn { padding: 8px 12px; margin: 3px; border: 1px solid #ccc; border-radius: 6px; cursor: pointer; background: white; font-weight: bold; }
+    .opt-btn.selected { background: var(--primary); color: white; border-color: #2980b9; }
+    
+    .sub-q { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+    math-field { flex: 1; border: 1px solid #ccc; border-radius: 5px; padding: 5px; font-size: 18px; }
+
+    /* Buttons */
+    .btn { width: 100%; padding: 14px; border: none; border-radius: 10px; color: white; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
     .btn-blue { background: var(--primary); }
+    .btn-orange { background: #f39c12; }
     .btn-green { background: var(--success); }
-    .q-card { border-bottom: 1px solid #eee; padding: 10px 0; }
-    .opt-btn { padding: 8px 12px; margin: 2px; border: 1px solid #ccc; border-radius: 5px; cursor: pointer; }
-    .opt-btn.selected { background: var(--primary); color: white; }
-    math-field { width: 100%; border: 1px solid #ccc; margin-top: 5px; }
+    input { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; }
+    
+    .status-box { padding: 10px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 15px; }
   </style>
 </head>
 <body>
 
 <div class="container">
-  <div id="loader">🔄 Yuklanmoqda...</div>
+  <div id="loader" style="text-align:center; padding:20px;">⌛ Yuklanmoqda...</div>
 
   <!-- ADMIN PANEL -->
-  <div id="adminPanel" class="admin-panel hidden">
-    <h3>⚙️ Admin Panel</h3>
-    <label>Savollar soni (A-D):</label> <input type="number" id="adm_n1" value="32">
-    <label>Savollar soni (A-F):</label> <input type="number" id="adm_n2" value="3">
-    <label>Savollar soni (Ochiq):</label> <input type="number" id="adm_n3" value="10">
-    <label>Boshlanish (YYYY-MM-DDTHH:MM):</label> <input type="datetime-local" id="adm_start">
-    <label>Tugash (YYYY-MM-DDTHH:MM):</label> <input type="datetime-local" id="adm_end">
-    <label>Kirish kodi:</label> <input type="text" id="adm_kod" value="1234">
-    <label>To'g'ri javoblar (JSON formatda):</label>
-    <textarea id="adm_keys" rows="5" placeholder='{"1":"A", "36":{"a":"25","b":"10"}}'></textarea>
-    <button class="btn btn-blue" onclick="saveAdminConfig()">Sozlamalarni saqlash</button>
+  <div id="adminArea" class="admin-panel hidden">
+    <h3 class="admin-title">⚙️ Admin Sozlamalari</h3>
+    <label>Yopiq (A-D) soni:</label> <input type="number" id="adm_n1" value="32">
+    <label>A-F turi soni:</label> <input type="number" id="adm_n2" value="3">
+    <label>Ochiq (a/b) soni:</label> <input type="number" id="adm_n3" value="10">
+    <label>Boshlanish vaqti:</label> <input type="datetime-local" id="adm_start">
+    <label>Tugash vaqti:</label> <input type="datetime-local" id="adm_end">
+    <label>Test kodi:</label> <input type="text" id="adm_kod" value="2026">
+    
+    <button class="btn btn-orange" onclick="renderAdminKeys()">📝 To'g'ri javoblarni belgilash</button>
+    
+    <div id="adminKeyEditor" class="hidden" style="margin-top:20px; border-top: 2px dashed #f39c12;">
+      <h4 style="text-align:center;">To'g'ri javoblar (Kalitlar):</h4>
+      <div id="adminQuestions"></div>
+      <button class="btn btn-blue" onclick="saveAdminConfig()">💾 Saqlash va E'lon qilish</button>
+    </div>
   </div>
 
-  <!-- USER SECTION -->
-  <div id="userSection" class="hidden">
-    <div id="statusBox" style="text-align:center; font-weight:bold; margin-bottom:15px;"></div>
+  <!-- STUDENT SECTION -->
+  <div id="userArea" class="hidden">
+    <div id="statusBox" class="status-box"></div>
     <div id="loginForm" class="hidden">
       <input type="text" id="userKod" placeholder="Test kodini kiriting">
-      <button class="btn btn-blue" onclick="tryStartTest()">Testni boshlash</button>
+      <button class="btn btn-blue" onclick="startStudentTest()">Kirish</button>
     </div>
     <div id="testArea" class="hidden">
-      <div id="questionsContainer"></div>
-      <button id="submitBtn" class="btn btn-green" onclick="submitTest()">Topshirish</button>
+      <div id="studentQuestions"></div>
+      <button id="submitBtn" class="btn btn-green" onclick="submitStudentTest()">📤 Topshirish</button>
     </div>
   </div>
 
-  <div id="msgArea" class="hidden" style="text-align:center; padding:30px;"></div>
+  <div id="finalMsg" class="hidden" style="text-align:center; padding:40px;"></div>
 </div>
 
 <script>
   const tg = window.Telegram.WebApp;
   tg.ready();
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzA4rsisqoI6wOA3i4abkaWa_WHGfoh6rcJXhdjCr6WDiRDaUTttboMltgxsD9RfG5k/exec";
-  let serverConfig = {};
-  let userAnswers = {};
-  const userId = tg.initDataUnsafe.user?.id;
+  const SCRIPT_URL = "SIZNING_GOOGLE_SCRIPT_URL";
+  let userId = tg.initDataUnsafe.user?.id;
+  let currentConfig = {};
+  let adminKeys = {}; 
+  let studentAnswers = {}; 
 
-  async function init() {
+  async function loadData() {
     try {
       const res = await fetch(`${SCRIPT_URL}?userId=${userId}`);
       const data = await res.json();
       document.getElementById('loader').classList.add('hidden');
-      serverConfig = data.config;
+      currentConfig = data.config;
 
-      if (data.isAdmin) document.getElementById('adminPanel').classList.remove('hidden');
-      
+      if (data.isAdmin) document.getElementById('adminArea').classList.remove('hidden');
+
       if (data.isSubmitted) {
-        showMsg("✅ Siz test topshirib bo'lgansiz!");
+        showFinal("✅ Test topshirilgan.");
       } else {
-        document.getElementById('userSection').classList.remove('hidden');
-        checkTimeStatus();
+        document.getElementById('userArea').classList.remove('hidden');
+        updateStatus();
       }
-    } catch (e) { document.getElementById('loader').innerText = "Xato: Serverga ulanib bo'lmadi."; }
+    } catch (e) { document.getElementById('loader').innerText = "Xato!"; }
   }
 
-  function checkTimeStatus() {
-    const now = new Date();
-    const start = new Date(serverConfig.start);
-    const end = new Date(serverConfig.end);
-    const box = document.getElementById('statusBox');
-
-    if (now < start) {
-      box.innerHTML = "⏳ Test hali boshlanmadi. <br> Boshlanish: " + start.toLocaleString();
-    } else if (now > end) {
-      box.innerHTML = "❌ Test vaqti tugagan.";
-    } else {
-      box.innerHTML = "✅ Test faol. <br> Tugash: " + end.toLocaleString();
-      document.getElementById('loginForm').classList.remove('hidden');
-    }
-  }
-
-  function tryStartTest() {
-    if (document.getElementById('userKod').value === serverConfig.kod) {
-      document.getElementById('loginForm').classList.add('hidden');
-      document.getElementById('testArea').classList.remove('hidden');
-      renderQuestions();
-    } else { alert("Kod xato!"); }
-  }
-
-  function renderQuestions() {
-    const cont = document.getElementById('questionsContainer');
-    let qNum = 1;
-    for(let i=0; i<serverConfig.n1; i++) addMCQ(cont, qNum++, ['A','B','C','D']);
-    for(let i=0; i<serverConfig.n2; i++) addMCQ(cont, qNum++, ['A','B','C','D','E','F']);
-    for(let i=0; i<serverConfig.n3; i++) addOpen(cont, qNum++);
-  }
-
-  function addMCQ(p, n, opts) {
-    const d = document.createElement('div'); d.className = 'q-card';
-    d.innerHTML = `<b>${n}.</b> <span id="group-${n}">${opts.map(o => `<button class="opt-btn" onclick="setMCQ(${n},'${o}',this)">${o}</button>`).join('')}</span>`;
-    p.appendChild(d);
-  }
-
-  function addOpen(p, n) {
-    const d = document.createElement('div'); d.className = 'q-card';
-    d.innerHTML = `<b>${n}.</b> a)<math-field oninput="setOpen(${n},'a',this)"></math-field> b)<math-field oninput="setOpen(${n},'b',this)"></math-field>`;
-    p.appendChild(d);
-  }
-
-  function setMCQ(n, v, btn) {
-    userAnswers[n] = v;
-    document.getElementById(`group-${n}`).querySelectorAll('.opt-btn').forEach(b => b.classList.remove('selected'));
-    btn.classList.add('selected');
-  }
-
-  function setOpen(n, part, el) {
-    if(!userAnswers[n]) userAnswers[n] = {a:"", b:""};
-    userAnswers[n][part] = el.value;
+  // --- ADMIN QISMI ---
+  function renderAdminKeys() {
+    const cont = document.getElementById('adminQuestions');
+    cont.innerHTML = "";
+    adminKeys = {};
+    let n1 = parseInt(document.getElementById('adm_n1').value);
+    let n2 = parseInt(document.getElementById('adm_n2').value);
+    let n3 = parseInt(document.getElementById('adm_n3').value);
+    generateUI(cont, n1, n2, n3, "admin");
+    document.getElementById('adminKeyEditor').classList.remove('hidden');
   }
 
   async function saveAdminConfig() {
@@ -147,33 +122,97 @@
       start: document.getElementById('adm_start').value,
       end: document.getElementById('adm_end').value,
       kod: document.getElementById('adm_kod').value,
-      keys: JSON.parse(document.getElementById('adm_keys').value || "{}")
+      keys: adminKeys
     };
     await fetch(SCRIPT_URL, {method: 'POST', body: JSON.stringify(payload)});
-    alert("Saqlandi! Sahifani yangilang.");
+    alert("Saqlandi!");
     location.reload();
   }
 
-  async function submitTest() {
-    if(!confirm("Testni topshirmoqchimisiz?")) return;
+  // --- USER QISMI ---
+  function updateStatus() {
+    const now = new Date();
+    const start = new Date(currentConfig.start);
+    const end = new Date(currentConfig.end);
+    const box = document.getElementById('statusBox');
+    if (now < start) {
+      box.innerHTML = "⏳ Kutilmoqda: " + start.toLocaleString();
+      box.style.background = "#d1ecf1";
+    } else if (now > end) {
+      box.innerHTML = "❌ Vaqt tugadi.";
+      box.style.background = "#f8d7da";
+    } else {
+      box.innerHTML = "✅ Test faol.";
+      box.style.background = "#d4edda";
+      document.getElementById('loginForm').classList.remove('hidden');
+    }
+  }
+
+  function startStudentTest() {
+    if (document.getElementById('userKod').value === currentConfig.kod) {
+      document.getElementById('loginForm').classList.add('hidden');
+      document.getElementById('testArea').classList.remove('hidden');
+      const cont = document.getElementById('studentQuestions');
+      generateUI(cont, currentConfig.n1, currentConfig.n2, currentConfig.n3, "user");
+    } else alert("Kod xato!");
+  }
+
+  async function submitStudentTest() {
     const btn = document.getElementById('submitBtn');
     btn.disabled = true;
     await fetch(SCRIPT_URL, {
       method: 'POST',
-      body: JSON.stringify({ action: "submit", userId: userId, answers: userAnswers })
+      body: JSON.stringify({ action: "submit", userId: userId, answers: studentAnswers })
     });
-    showMsg("✅ Test topshirildi. Rahmat!");
-    setTimeout(() => tg.close(), 3000);
+    showFinal("✅ Topshirildi!");
+    setTimeout(() => tg.close(), 2000);
   }
 
-  function showMsg(m) {
-    document.getElementById('userSection').classList.add('hidden');
-    const area = document.getElementById('msgArea');
-    area.innerHTML = m;
-    area.classList.remove('hidden');
+  // --- UNIVERSAL GENERATOR ---
+  function generateUI(cont, n1, n2, n3, mode) {
+    let qNum = 1;
+    for(let i=0; i<n1; i++) addMCQ(cont, qNum++, ['A','B','C','D'], mode);
+    for(let i=0; i<n2; i++) addMCQ(cont, qNum++, ['A','B','C','D','E','F'], mode);
+    for(let i=0; i<n3; i++) addOpen(cont, qNum++, mode);
   }
 
-  init();
+  function addMCQ(p, n, opts, m) {
+    const div = document.createElement('div'); div.className = 'q-card';
+    div.innerHTML = `<b>${n}.</b> <span id="${m}-grp-${n}">
+      ${opts.map(o => `<button class="opt-btn" onclick="selectOpt(${n},'${o}','${m}',this)">${o}</button>`).join('')}
+    </span>`;
+    p.appendChild(div);
+  }
+
+  function selectOpt(n, v, m, btn) {
+    let obj = (m === "admin") ? adminKeys : studentAnswers;
+    obj[n] = v;
+    document.getElementById(`${m}-grp-${n}`).querySelectorAll('.opt-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+  }
+
+  function addOpen(p, n, m) {
+    const div = document.createElement('div'); div.className = 'q-card';
+    div.innerHTML = `<b>${n}.</b> 
+      <div class="sub-q">a) <math-field oninput="updateO(${n},'a','${m}',this)"></math-field></div>
+      <div class="sub-q">b) <math-field oninput="updateO(${n},'b','${m}',this)"></math-field></div>`;
+    p.appendChild(div);
+  }
+
+  function updateO(n, p, m, el) {
+    let obj = (m === "admin") ? adminKeys : studentAnswers;
+    if(!obj[n]) obj[n] = {a:"", b:""};
+    obj[n][p] = el.value;
+  }
+
+  function showFinal(m) {
+    document.querySelectorAll('.container > div').forEach(d => d.classList.add('hidden'));
+    const f = document.getElementById('finalMsg');
+    f.innerHTML = `<h3>${m}</h3>`;
+    f.classList.remove('hidden');
+  }
+
+  loadData();
 </script>
 </body>
 </html>
