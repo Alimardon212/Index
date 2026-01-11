@@ -11,21 +11,19 @@
     body { font-family: sans-serif; background: var(--bg); padding: 10px; margin: 0; }
     .container { max-width: 600px; margin: auto; background: white; padding: 15px; border-radius: 15px; }
     .hidden { display: none; }
-    .admin-card { background: #fff4e5; border: 1px solid #f39c12; padding: 15px; border-radius: 12px; margin-bottom: 10px; }
+    .admin-card { background: #fff4e5; border: 1px solid #f39c12; padding: 15px; border-radius: 12px; margin-bottom: 15px; }
     .test-item { display: flex; justify-content: space-between; align-items: center; background: white; padding: 10px; border-radius: 8px; margin-top: 10px; border-left: 5px solid #f39c12; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-    .test-info { font-size: 13px; line-height: 1.4; }
-    .actions button { border: none; background: none; cursor: pointer; font-size: 18px; margin-left: 10px; }
     .form-group { background: #f9f9f9; padding: 15px; border-radius: 10px; margin-top: 15px; border: 1px solid #ddd; }
-    input { width: 100%; padding: 10px; margin: 5px 0 15px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box;}
+    input { width: 100%; padding: 10px; margin: 5px 0 12px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box;}
     .btn { width: 100%; padding: 14px; border: none; border-radius: 10px; color: white; font-size: 16px; font-weight: bold; cursor: pointer; }
     .btn-blue { background: var(--primary); }
     .btn-green { background: var(--success); }
     .btn-orange { background: #f39c12; }
-    .status-box { padding: 20px; border-radius: 12px; text-align: center; font-weight: bold; font-size: 16px; }
     .q-card { border-bottom: 1px solid #eee; padding: 15px 0; }
     .opt-btn { padding: 8px 12px; margin: 3px; border: 1px solid #ccc; border-radius: 6px; cursor: pointer; background: white; }
     .opt-btn.selected { background: var(--primary); color: white; }
-    math-field { width: 100%; border: 1px solid #ccc; border-radius: 5px; margin-top: 5px; }
+    math-field { width: 100%; border: 1px solid #ccc; border-radius: 6px; margin-top: 5px; font-size: 18px; background: #fff;}
+    .status-box { padding: 20px; border-radius: 12px; text-align: center; font-weight: bold; font-size: 16px; margin-bottom: 15px; }
   </style>
 </head>
 <body>
@@ -35,18 +33,17 @@
 
   <!-- ADMIN AREA -->
   <div id="adminArea" class="admin-card hidden">
-    <h3 style="margin-top:0; color:#d35400;">Boshqaruv Paneli</h3>
-    <div id="activeTestList">
-        <p style="font-weight:bold; font-size:14px;">Mavjud barcha testlar:</p>
-        <div id="testListDisplay"></div>
-    </div>
-    <button class="btn btn-blue" style="margin-top:15px;" onclick="openNewForm()">➕ Yangi test qo'shish</button>
+    <h3 style="margin:0; color:#d35400;">Boshqaruv Paneli</h3>
+    <div id="testListDisplay"></div>
+    <button class="btn btn-blue" style="margin-top:10px;" onclick="openNewForm()">➕ Yangi test qo'shish</button>
 
     <div id="adminForm" class="form-group hidden">
       <h4 id="formTitle">Test ma'lumotlari</h4>
-      <label>A-D soni:</label> <input type="number" id="adm_n1" value="1">
-      <label>A-F soni:</label> <input type="number" id="adm_n2" value="1">
-      <label>Ochiq soni:</label> <input type="number" id="adm_n3" value="1">
+      <label>A-D (Yopiq) soni:</label> <input type="number" id="adm_n1" value="1">
+      <label>A-F (Matching) soni:</label> <input type="number" id="adm_n2" value="1">
+      <label>a/b (Qo'shaloq ochiq) soni:</label> <input type="number" id="adm_n3" value="1">
+      <label>Yagona ochiq (Bittalik) soni:</label> <input type="number" id="adm_n4" value="1">
+      
       <label>Boshlanish:</label> <input type="datetime-local" id="adm_start">
       <label>Tugash:</label> <input type="datetime-local" id="adm_end">
       <label>Kod:</label> <input type="text" id="adm_kod" placeholder="Masalan: MATH01">
@@ -77,7 +74,7 @@
 
 <script>
   const tg = window.Telegram.WebApp;
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyi_JVS6IE30PZZGq47hEqUVdjRL8QsP1hzB4BBkCV1TNmdulwMaCsKf7iVhLY_3Yfm/exec";
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzD6yYi6W6KDtP8wdbx3j78SpurW3aTY6JwrwA_uNONIlk1iKtvkTlv-3ys_Gd_GsQH/exec";
   let userId = String(tg.initDataUnsafe.user?.id);
   let server = { testList: [], isAdmin: false, submittedTests: [] };
   let adminKeys = {};
@@ -88,62 +85,40 @@
     const res = await fetch(`${SCRIPT_URL}?userId=${userId}`);
     server = await res.json();
     document.getElementById('loader').classList.add('hidden');
-
     if (server.isAdmin) {
       document.getElementById('adminArea').classList.remove('hidden');
       displayTestList();
     }
-    
     document.getElementById('userArea').classList.remove('hidden');
     checkGlobalStatus();
   }
 
   function displayTestList() {
     const cont = document.getElementById('testListDisplay');
-    if (server.testList.length === 0) {
-      cont.innerHTML = "<p style='font-size:12px;'>Hozircha hech qanday test yaratilmagan.</p>";
-      return;
-    }
-    cont.innerHTML = server.testList.map(t => `
+    cont.innerHTML = server.testList.length ? server.testList.map(t => `
       <div class="test-item">
-        <div class="test-info">
-          <b>Kod: ${t.kod}</b> (${t.n1+t.n2+t.n3} ta savol)<br>
-          🕒 ${new Date(t.start).toLocaleString()}<br>
-          🏁 ${new Date(t.end).toLocaleString()}
-        </div>
-        <div class="actions">
+        <div style="font-size:12px;"><b>Kod: ${t.kod}</b> (${t.n1+t.n2+t.n3+(t.n4||0)} ta savol)</div>
+        <div>
           <button onclick="editTest('${t.kod}')">✏️</button>
           <button onclick="deleteTest('${t.kod}')">🗑️</button>
         </div>
       </div>
-    `).join('');
+    `).join('') : "Testlar yo'q.";
   }
 
   function checkGlobalStatus() {
     const now = new Date();
-    const activeTests = server.testList.filter(t => new Date(t.end) > now);
+    const hasActive = server.testList.some(t => new Date(t.end) > now);
     const box = document.getElementById('statusBox');
-    
-    if (activeTests.length === 0) {
-      box.innerHTML = "📭 Hozirda mavjud testlar yo'q.";
-      box.style.background = "#e9ecef";
-    } else {
-      box.innerHTML = "✅ Tizimda faol testlar mavjud. Kirish uchun kodni yozing.";
-      box.style.background = "#d4edda";
-      document.getElementById('loginForm').classList.remove('hidden');
-    }
+    box.innerHTML = hasActive ? "✅ Faol testlar bor. Kodni kiriting." : "📭 Hozirda testlar yo'q.";
+    box.style.background = hasActive ? "#d4edda" : "#e9ecef";
+    if(hasActive) document.getElementById('loginForm').classList.remove('hidden');
   }
 
   function openNewForm() {
     document.getElementById('adminForm').classList.remove('hidden');
-    document.getElementById('formTitle').innerText = "Yangi test yaratish";
-    document.getElementById('adm_n1').value = 1;
-    document.getElementById('adm_n2').value = 1;
-    document.getElementById('adm_n3').value = 1;
-    document.getElementById('adm_kod').value = "";
     document.getElementById('adm_kod').disabled = false;
     adminKeys = {};
-    document.getElementById('keyArea').classList.add('hidden');
   }
 
   function editTest(kod) {
@@ -151,18 +126,18 @@
     document.getElementById('adm_n1').value = t.n1;
     document.getElementById('adm_n2').value = t.n2;
     document.getElementById('adm_n3').value = t.n3;
+    document.getElementById('adm_n4').value = t.n4 || 0;
     document.getElementById('adm_start').value = t.start;
     document.getElementById('adm_end').value = t.end;
     document.getElementById('adm_kod').value = t.kod;
     document.getElementById('adm_kod').disabled = true;
     adminKeys = t.keys;
-    document.getElementById('formTitle').innerText = "Testni tahrirlash";
-    document.getElementById('adminForm').classList.remove('hidden');
     renderKeys();
+    document.getElementById('adminForm').classList.remove('hidden');
   }
 
   async function deleteTest(kod) {
-    if (confirm(`Kodi ${kod} bo'lgan testni o'chirmoqchimisiz?`)) {
+    if (confirm("O'chirilsinmi?")) {
       await fetch(SCRIPT_URL, {method:'POST', body: JSON.stringify({action:"delete", kod: kod})});
       location.reload();
     }
@@ -171,13 +146,13 @@
   function renderKeys() {
     document.getElementById('keyArea').classList.remove('hidden');
     const cont = document.getElementById('adminQuestions');
-    cont.innerHTML = "";
     const c = {
       n1: parseInt(document.getElementById('adm_n1').value),
       n2: parseInt(document.getElementById('adm_n2').value),
-      n3: parseInt(document.getElementById('adm_n3').value)
+      n3: parseInt(document.getElementById('adm_n3').value),
+      n4: parseInt(document.getElementById('adm_n4').value)
     };
-    generateFields(cont, c, "admin");
+    generateUI(cont, c, "admin");
   }
 
   async function saveData() {
@@ -186,6 +161,7 @@
       n1: parseInt(document.getElementById('adm_n1').value),
       n2: parseInt(document.getElementById('adm_n2').value),
       n3: parseInt(document.getElementById('adm_n3').value),
+      n4: parseInt(document.getElementById('adm_n4').value),
       start: document.getElementById('adm_start').value,
       end: document.getElementById('adm_end').value,
       kod: document.getElementById('adm_kod').value,
@@ -196,78 +172,71 @@
   }
 
   function tryAccessTest() {
-    const inputKod = document.getElementById('userKod').value.trim();
-    const test = server.testList.find(t => t.kod === inputKod);
-    const box = document.getElementById('statusBox');
-
-    if (!test) { alert("Bunday kodli test topilmadi!"); return; }
-    
-    const now = new Date();
-    if (now < new Date(test.start)) {
-      alert(`Bu test hali boshlanmadi. Boshlanish vaqti: ${new Date(test.start).toLocaleString()}`);
-      return;
-    }
-    if (now > new Date(test.end)) {
-      alert("Bu testning muddati tugagan!");
-      return;
-    }
-    if (server.submittedTests.includes(inputKod)) {
-      alert("Siz bu testni topshirib bo'lgansiz!");
-      return;
-    }
-
-    activeStudentTest = test;
+    const kod = document.getElementById('userKod').value.trim();
+    const t = server.testList.find(x => x.kod === kod);
+    if (!t) return alert("Xato kod!");
+    if (server.submittedTests.includes(kod)) return alert("Topshirilgan!");
+    activeStudentTest = t;
     document.getElementById('loginForm').classList.add('hidden');
     document.getElementById('testArea').classList.remove('hidden');
-    generateFields(document.getElementById('studentQuestions'), test, "user");
+    generateUI(document.getElementById('studentQuestions'), t, "user");
   }
 
-  function generateFields(cont, config, mode) {
+  function generateUI(cont, config, mode) {
     cont.innerHTML = "";
-    let qNum = 1;
-    for(let i=0; i<config.n1; i++) addMCQ(cont, qNum++, ['A','B','C','D'], mode);
-    for(let i=0; i<config.n2; i++) addMCQ(cont, qNum++, ['A','B','C','D','E','F'], mode);
-    for(let i=0; i<config.n3; i++) addOpen(cont, qNum++, mode);
+    let q = 1;
+    for(let i=0; i<config.n1; i++) addMCQ(cont, q++, ['A','B','C','D'], mode);
+    for(let i=0; i<config.n2; i++) addMCQ(cont, q++, ['A','B','C','D','E','F'], mode);
+    for(let i=0; i<config.n3; i++) addOpenDouble(cont, q++, mode);
+    for(let i=0; i<(config.n4||0); i++) addOpenSingle(cont, q++, mode);
   }
 
   function addMCQ(p, n, opts, m) {
     const d = document.createElement('div'); d.className = 'q-card';
-    const currentKeys = (m === 'admin') ? adminKeys : userAnswers;
+    const keys = (m === 'admin') ? adminKeys : userAnswers;
     d.innerHTML = `<b>${n}.</b> <span id="${m}-grp-${n}">
-      ${opts.map(o => `<button class="opt-btn ${currentKeys[n]===o ? 'selected' : ''}" onclick="sel(${n},'${o}','${m}',this)">${o}</button>`).join('')}</span>`;
+      ${opts.map(o => `<button class="opt-btn ${keys[n]===o?'selected':''}" onclick="sel(${n},'${o}','${m}',this)">${o}</button>`).join('')}</span>`;
     p.appendChild(d);
   }
 
-  function sel(n, v, m, btn) {
-    (m === "admin" ? adminKeys : userAnswers)[n] = v;
-    btn.parentElement.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('selected'));
+  function addOpenDouble(p, n, m) {
+    const d = document.createElement('div'); d.className = 'q-card';
+    const val = (m==='admin' && adminKeys[n]) ? adminKeys[n] : {a:'', b:''};
+    d.innerHTML = `<b>${n}.</b> a)<math-field id="${m}-q-${n}-a" value="${val.a||''}" oninput="updD(${n},'a','${m}',this)"></math-field> 
+                        b)<math-field id="${m}-q-${n}-b" value="${val.b||''}" oninput="updD(${n},'b','${m}',this)"></math-field>`;
+    p.appendChild(d);
+  }
+
+  function addOpenSingle(p, n, m) {
+    const d = document.createElement('div'); d.className = 'q-card';
+    const val = (m==='admin') ? (adminKeys[n] || '') : '';
+    d.innerHTML = `<b>${n}. (Ochiq)</b> <math-field value="${val}" oninput="updS(${n},'${m}',this)"></math-field>`;
+    p.appendChild(d);
+  }
+
+  function sel(n,v,m,btn) {
+    (m==="admin"?adminKeys:userAnswers)[n]=v;
+    btn.parentElement.querySelectorAll('.opt-btn').forEach(b=>b.classList.remove('selected'));
     btn.classList.add('selected');
   }
 
-  function addOpen(p, n, m) {
-    const d = document.createElement('div'); d.className = 'q-card';
-    const val = (m === 'admin') ? (adminKeys[n] || {a:'', b:''}) : {a:'', b:''};
-    d.innerHTML = `<b>${n}.</b> a)<math-field value="${val.a}" oninput="updO(${n},'a','${m}',this)"></math-field> b)<math-field value="${val.b}" oninput="updO(${n},'b','${m}',this)"></math-field>`;
-    p.appendChild(d);
+  function updD(n,p,m,el) {
+    let obj = (m==="admin"?adminKeys:userAnswers);
+    if(!obj[n]) obj[n]={a:"",b:""};
+    obj[n][p]=el.value;
   }
 
-  function updO(n, p, m, el) {
-    let obj = (m === "admin" ? adminKeys : userAnswers);
-    if(!obj[n]) obj[n] = {a:"", b:""};
-    obj[n][p] = el.value;
+  function updS(n,m,el) {
+    (m==="admin"?adminKeys:userAnswers)[n]=el.value;
   }
 
   async function submitTest() {
-    if(!confirm("Javoblarni yuborishni tasdiqlaysizmi?")) return;
     document.getElementById('submitBtn').disabled = true;
     await fetch(SCRIPT_URL, {
       method:'POST', 
       body: JSON.stringify({action:"submit", userId:userId, kod: activeStudentTest.kod, answers:userAnswers})
     });
-    document.getElementById('testArea').classList.add('hidden');
-    document.getElementById('finalMsg').innerHTML = "<h3>✅ Test muvaffaqiyatli topshirildi!</h3>";
-    document.getElementById('finalMsg').classList.remove('hidden');
-    setTimeout(() => tg.close(), 2500);
+    tg.close();
   }
 
   load();
