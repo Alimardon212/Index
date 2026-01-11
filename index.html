@@ -3,26 +3,35 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Imtihon Sistemi</title>
+  <title>Test System Pro</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/mathlive"></script>
   <style>
-    :root { --primary: #3498db; --success: #2ecc71; --danger: #e74c3c; --warning: #f1c40f; --bg: #f4f7f9; }
+    :root { --primary: #3498db; --danger: #e74c3c; --success: #2ecc71; --bg: #f4f7f9; }
     body { font-family: sans-serif; background: var(--bg); padding: 10px; margin: 0; }
     .container { max-width: 600px; margin: auto; background: white; padding: 15px; border-radius: 15px; }
     .hidden { display: none; }
-    .admin-panel { background: #fff4e5; border: 2px solid #f39c12; padding: 15px; border-radius: 12px; margin-bottom: 20px; }
-    .btn { width: 100%; padding: 14px; border: none; border-radius: 10px; color: white; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+    
+    /* Admin List Style */
+    .admin-card { background: #fff4e5; border: 1px solid #f39c12; padding: 15px; border-radius: 12px; margin-bottom: 10px; }
+    .test-item { display: flex; justify-content: space-between; align-items: center; background: white; padding: 10px; border-radius: 8px; margin-top: 10px; border-left: 5px solid #f39c12; }
+    .test-info { font-size: 13px; line-height: 1.4; }
+    .actions button { border: none; background: none; cursor: pointer; font-size: 18px; margin-left: 10px; }
+
+    /* Form Style */
+    .form-group { background: #f9f9f9; padding: 15px; border-radius: 10px; margin-top: 15px; border: 1px solid #ddd; }
+    input { width: 100%; padding: 10px; margin: 5px 0 15px; border: 1px solid #ccc; border-radius: 8px; }
+    .btn { width: 100%; padding: 14px; border: none; border-radius: 10px; color: white; font-size: 16px; font-weight: bold; cursor: pointer; }
     .btn-blue { background: var(--primary); }
-    .btn-red { background: var(--danger); }
     .btn-green { background: var(--success); }
     .btn-orange { background: #f39c12; }
-    .status-box { padding: 15px; border-radius: 10px; text-align: center; font-weight: bold; margin-bottom: 15px; }
-    .q-card { border-bottom: 1px solid #eee; padding: 12px 0; }
+
+    /* User Status */
+    .status-box { padding: 20px; border-radius: 12px; text-align: center; font-weight: bold; font-size: 16px; }
+    .q-card { border-bottom: 1px solid #eee; padding: 15px 0; }
     .opt-btn { padding: 8px 12px; margin: 3px; border: 1px solid #ccc; border-radius: 6px; cursor: pointer; background: white; }
     .opt-btn.selected { background: var(--primary); color: white; }
-    input { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; }
-    math-field { width: 100%; border: 1px solid #ccc; border-radius: 5px; padding: 5px; }
+    math-field { width: 100%; border: 1px solid #ccc; border-radius: 5px; margin-top: 5px; }
   </style>
 </head>
 <body>
@@ -30,25 +39,36 @@
 <div class="container">
   <div id="loader" style="text-align:center; padding:20px;">⌛ Yuklanmoqda...</div>
 
-  <!-- ADMIN PANEL -->
-  <div id="adminArea" class="admin-panel hidden">
-    <h3 style="text-align:center; color:#d35400;">⚙️ Admin Sozlamalari</h3>
-    <label>A-D soni:</label> <input type="number" id="adm_n1" value="32">
-    <label>A-F soni:</label> <input type="number" id="adm_n2" value="3">
-    <label>Ochiq soni:</label> <input type="number" id="adm_n3" value="10">
-    <label>Boshlanish:</label> <input type="datetime-local" id="adm_start">
-    <label>Tugash:</label> <input type="datetime-local" id="adm_end">
-    <label>Kod:</label> <input type="text" id="adm_kod" value="2026">
+  <!-- ADMIN AREA -->
+  <div id="adminArea" class="admin-card hidden">
+    <h3 style="margin-top:0; color:#d35400;">Boshqaruv Paneli</h3>
     
-    <button class="btn btn-orange" onclick="renderAdminKeys()">📝 To'g'ri javoblarni belgilash</button>
-    <div id="adminKeyEditor" class="hidden">
-        <div id="adminQuestions"></div>
-        <button class="btn btn-blue" onclick="saveConfig()">💾 Saqlash / O'zgartirish</button>
+    <!-- Mavjud testlar ro'yxati -->
+    <div id="activeTestList">
+        <p style="font-size:12px; color:#666;">Hozirgi test:</p>
+        <div id="testDisplay"></div>
     </div>
-    <button class="btn btn-red" onclick="deleteTest()">🗑 Mavjud testni butkul o'chirish</button>
+
+    <button class="btn btn-blue" id="addNewBtn" onclick="toggleForm()">➕ Yangi test yaratish</button>
+
+    <div id="adminForm" class="form-group hidden">
+      <h4 id="formTitle">Yangi test ma'lumotlari</h4>
+      <label>A-D soni:</label> <input type="number" id="adm_n1" value="32">
+      <label>A-F soni:</label> <input type="number" id="adm_n2" value="3">
+      <label>Ochiq soni:</label> <input type="number" id="adm_n3" value="10">
+      <label>Boshlanish:</label> <input type="datetime-local" id="adm_start">
+      <label>Tugash:</label> <input type="datetime-local" id="adm_end">
+      <label>Kod:</label> <input type="text" id="adm_kod">
+      
+      <button class="btn btn-orange" onclick="renderKeys()">📝 Javoblarni belgilash</button>
+      <div id="keyArea" class="hidden">
+          <div id="adminQuestions"></div>
+          <button class="btn btn-green" onclick="saveData()">💾 Saqlash</button>
+      </div>
+    </div>
   </div>
 
-  <!-- USER SECTION -->
+  <!-- USER AREA -->
   <div id="userArea" class="hidden">
     <div id="statusBox" class="status-box"></div>
     
@@ -68,47 +88,63 @@
 
 <script>
   const tg = window.Telegram.WebApp;
-  tg.ready();
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxUg7Qh1sbL1qJE8CZ15umONopkjzFncnDOXqN1kCuq_CnnBD0aZ_IHDz6nYcil6HJ4/exec";
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw-3Mp5UFgz985LiETwDxPthHWD0msfZecSbWmX7CqrTigFnPXojIR7cLd8FDvMX1Es/exec";
   let userId = tg.initDataUnsafe.user?.id;
-  let serverData = {};
+  let server = {};
   let adminKeys = {};
   let userAnswers = {};
 
   async function load() {
-    try {
-      const res = await fetch(`${SCRIPT_URL}?userId=${userId}`);
-      serverData = await res.json();
-      document.getElementById('loader').classList.add('hidden');
+    const res = await fetch(`${SCRIPT_URL}?userId=${userId}`);
+    server = await res.json();
+    document.getElementById('loader').classList.add('hidden');
 
-      if (serverData.isAdmin) document.getElementById('adminArea').classList.remove('hidden');
+    if (server.isAdmin) {
+      document.getElementById('adminArea').classList.remove('hidden');
+      updateAdminList();
+    }
 
-      if (!serverData.hasTest) {
-        document.getElementById('userArea').classList.remove('hidden');
-        const box = document.getElementById('statusBox');
-        box.innerHTML = "📭 Hozirda mavjud testlar yo'q.";
-        box.style.background = "#e2e3e5";
-      } else if (serverData.isSubmitted) {
-        showMsg("✅ Siz test topshirib bo'lgansiz.");
-      } else {
-        document.getElementById('userArea').classList.remove('hidden');
-        updateUserStatus();
-      }
-    } catch (e) { document.getElementById('loader').innerText = "Xato!"; }
+    if (!server.hasTest || server.isExpired) {
+      document.getElementById('userArea').classList.remove('hidden');
+      document.getElementById('statusBox').innerHTML = "📭 Hozirda mavjud testlar yo'q.";
+      document.getElementById('statusBox').style.background = "#e9ecef";
+    } else if (server.isSubmitted) {
+      showFinal("✅ Test topshirilgan.");
+    } else {
+      document.getElementById('userArea').classList.remove('hidden');
+      checkUserTime();
+    }
   }
 
-  function updateUserStatus() {
-    const now = new Date();
-    const start = new Date(serverData.config.start);
-    const end = new Date(serverData.config.end);
-    const box = document.getElementById('statusBox');
+  function updateAdminList() {
+    const display = document.getElementById('testDisplay');
+    if (!server.hasTest) {
+      display.innerHTML = "<p style='font-size:13px;'>Hozircha test yo'q.</p>";
+      return;
+    }
+    const c = server.config;
+    display.innerHTML = `
+      <div class="test-item">
+        <div class="test-info">
+          <b>Kod: ${c.kod}</b><br>
+          🕒 ${new Date(c.start).toLocaleString()}<br>
+          🏁 ${new Date(c.end).toLocaleString()}
+        </div>
+        <div class="actions">
+          <button onclick="editTest()">✏️</button>
+          <button onclick="deleteTest()">🗑️</button>
+        </div>
+      </div>
+    `;
+  }
 
+  function checkUserTime() {
+    const now = new Date();
+    const start = new Date(server.config.start);
+    const box = document.getElementById('statusBox');
     if (now < start) {
-      box.innerHTML = `⏳ Test kutilmoqda. <br> Boshlanish: ${start.toLocaleString()}`;
+      box.innerHTML = `⏳ Test kutilmoqda... <br> Boshlanish: ${start.toLocaleString()}`;
       box.style.background = "#fff3cd";
-    } else if (now > end) {
-      box.innerHTML = "❌ Test vaqti tugagan.";
-      box.style.background = "#f8d7da";
     } else {
       box.innerHTML = "✅ Test faol!";
       box.style.background = "#d4edda";
@@ -116,23 +152,36 @@
     }
   }
 
-  function startTest() {
-    if (document.getElementById('userKod').value.trim() === String(serverData.config.kod).trim()) {
-      document.getElementById('loginForm').classList.add('hidden');
-      document.getElementById('testArea').classList.remove('hidden');
-      renderUI(document.getElementById('studentQuestions'), "user");
-    } else alert("Kod xato!");
+  function toggleForm() { document.getElementById('adminForm').classList.toggle('hidden'); }
+
+  function editTest() {
+    const c = server.config;
+    document.getElementById('adm_n1').value = c.n1;
+    document.getElementById('adm_n2').value = c.n2;
+    document.getElementById('adm_n3').value = c.n3;
+    document.getElementById('adm_start').value = c.start;
+    document.getElementById('adm_end').value = c.end;
+    document.getElementById('adm_kod').value = c.kod;
+    adminKeys = c.keys;
+    document.getElementById('formTitle').innerText = "Testni tahrirlash";
+    document.getElementById('adminForm').classList.remove('hidden');
   }
 
-  // --- ADMIN ---
-  function renderAdminKeys() {
-    document.getElementById('adminKeyEditor').classList.remove('hidden');
-    renderUI(document.getElementById('adminQuestions'), "admin");
+  async function deleteTest() {
+    if (confirm("Testni o'chirishni tasdiqlaysizmi?")) {
+      await fetch(SCRIPT_URL, {method:'POST', body: JSON.stringify({action:"delete"})});
+      location.reload();
+    }
   }
 
-  async function saveConfig() {
+  function renderKeys() {
+    document.getElementById('keyArea').classList.remove('hidden');
+    generateQuestions(document.getElementById('adminQuestions'), "admin");
+  }
+
+  async function saveData() {
     const payload = {
-      action: "saveConfig",
+      action: "save",
       n1: document.getElementById('adm_n1').value,
       n2: document.getElementById('adm_n2').value,
       n3: document.getElementById('adm_n3').value,
@@ -141,23 +190,16 @@
       kod: document.getElementById('adm_kod').value,
       keys: adminKeys
     };
-    await fetch(SCRIPT_URL, {method: 'POST', body: JSON.stringify(payload)});
+    await fetch(SCRIPT_URL, {method:'POST', body: JSON.stringify(payload)});
     location.reload();
   }
 
-  async function deleteTest() {
-    if (!confirm("Haqiqatdan ham testni o'chirmoqchimisiz? Bu hamma sozlamalarni o'chiradi.")) return;
-    await fetch(SCRIPT_URL, {method: 'POST', body: JSON.stringify({action: "deleteConfig"})});
-    location.reload();
-  }
-
-  // --- UNIVERSAL ---
-  function renderUI(cont, mode) {
+  // Universal Generator
+  function generateQuestions(cont, mode) {
     cont.innerHTML = "";
     let c = (mode === "admin") ? 
-        {n1: document.getElementById('adm_n1').value, n2: document.getElementById('adm_n2').value, n3: document.getElementById('adm_n3').value} : 
-        serverData.config;
-    
+      {n1: document.getElementById('adm_n1').value, n2: document.getElementById('adm_n2').value, n3: document.getElementById('adm_n3').value} : 
+      server.config;
     let qNum = 1;
     for(let i=0; i<c.n1; i++) addMCQ(cont, qNum++, ['A','B','C','D'], mode);
     for(let i=0; i<c.n2; i++) addMCQ(cont, qNum++, ['A','B','C','D','E','F'], mode);
@@ -165,39 +207,47 @@
   }
 
   function addMCQ(p, n, opts, m) {
-    const div = document.createElement('div'); div.className = 'q-card';
-    div.innerHTML = `<b>${n}.</b> <span id="${m}-grp-${n}">
-      ${opts.map(o => `<button class="opt-btn" onclick="sel(${n},'${o}','${m}',this)">${o}</button>`).join('')}</span>`;
-    p.appendChild(div);
+    const d = document.createElement('div'); d.className = 'q-card';
+    d.innerHTML = `<b>${n}.</b> <span id="${m}-grp-${n}">
+      ${opts.map(o => `<button class="opt-btn ${ (m==='admin' && adminKeys[n]===o)?'selected':'' }" onclick="sel(${n},'${o}','${m}',this)">${o}</button>`).join('')}</span>`;
+    p.appendChild(d);
   }
 
   function sel(n, v, m, btn) {
-    let obj = (m === "admin") ? adminKeys : userAnswers;
-    obj[n] = v;
+    (m === "admin" ? adminKeys : userAnswers)[n] = v;
     btn.parentElement.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('selected'));
     btn.classList.add('selected');
   }
 
   function addOpen(p, n, m) {
-    const div = document.createElement('div'); div.className = 'q-card';
-    div.innerHTML = `<b>${n}.</b> a)<math-field oninput="updO(${n},'a','${m}',this)"></math-field> b)<math-field oninput="updO(${n},'b','${m}',this)"></math-field>`;
-    p.appendChild(div);
+    const d = document.createElement('div'); d.className = 'q-card';
+    const val = (m==='admin') ? (adminKeys[n] || {a:'',b:''}) : {a:'',b:''};
+    d.innerHTML = `<b>${n}.</b> a)<math-field value="${val.a}" oninput="updO(${n},'a','${m}',this)"></math-field> b)<math-field value="${val.b}" oninput="updO(${n},'b','${m}',this)"></math-field>`;
+    p.appendChild(d);
   }
 
   function updO(n, p, m, el) {
-    let obj = (m === "admin") ? adminKeys : userAnswers;
+    let obj = (m === "admin" ? adminKeys : userAnswers);
     if(!obj[n]) obj[n] = {a:"", b:""};
     obj[n][p] = el.value;
   }
 
+  function startTest() {
+    if (document.getElementById('userKod').value.trim() === String(server.config.kod).trim()) {
+      document.getElementById('loginForm').classList.add('hidden');
+      document.getElementById('testArea').classList.remove('hidden');
+      generateQuestions(document.getElementById('studentQuestions'), "user");
+    } else alert("Kod xato!");
+  }
+
   async function submitTest() {
     document.getElementById('submitBtn').disabled = true;
-    await fetch(SCRIPT_URL, {method: 'POST', body: JSON.stringify({action: "submit", userId: userId, answers: userAnswers})});
-    showMsg("✅ Test topshirildi.");
+    await fetch(SCRIPT_URL, {method:'POST', body: JSON.stringify({action:"submit", userId:userId, answers:userAnswers})});
+    showFinal("✅ Test topshirildi.");
     setTimeout(() => tg.close(), 2000);
   }
 
-  function showMsg(m) {
+  function showFinal(m) {
     document.getElementById('userArea').classList.add('hidden');
     document.getElementById('adminArea').classList.add('hidden');
     document.getElementById('finalMsg').innerHTML = `<h3>${m}</h3>`;
