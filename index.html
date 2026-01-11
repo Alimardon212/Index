@@ -11,22 +11,16 @@
     body { font-family: sans-serif; background: var(--bg); padding: 10px; margin: 0; }
     .container { max-width: 600px; margin: auto; background: white; padding: 15px; border-radius: 15px; }
     .hidden { display: none; }
-    
-    /* Admin List Style */
     .admin-card { background: #fff4e5; border: 1px solid #f39c12; padding: 15px; border-radius: 12px; margin-bottom: 10px; }
-    .test-item { display: flex; justify-content: space-between; align-items: center; background: white; padding: 10px; border-radius: 8px; margin-top: 10px; border-left: 5px solid #f39c12; }
+    .test-item { display: flex; justify-content: space-between; align-items: center; background: white; padding: 10px; border-radius: 8px; margin-top: 10px; border-left: 5px solid #f39c12; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
     .test-info { font-size: 13px; line-height: 1.4; }
     .actions button { border: none; background: none; cursor: pointer; font-size: 18px; margin-left: 10px; }
-
-    /* Form Style */
     .form-group { background: #f9f9f9; padding: 15px; border-radius: 10px; margin-top: 15px; border: 1px solid #ddd; }
-    input { width: 100%; padding: 10px; margin: 5px 0 15px; border: 1px solid #ccc; border-radius: 8px; }
+    input { width: 100%; padding: 10px; margin: 5px 0 15px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box;}
     .btn { width: 100%; padding: 14px; border: none; border-radius: 10px; color: white; font-size: 16px; font-weight: bold; cursor: pointer; }
     .btn-blue { background: var(--primary); }
     .btn-green { background: var(--success); }
     .btn-orange { background: #f39c12; }
-
-    /* User Status */
     .status-box { padding: 20px; border-radius: 12px; text-align: center; font-weight: bold; font-size: 16px; }
     .q-card { border-bottom: 1px solid #eee; padding: 15px 0; }
     .opt-btn { padding: 8px 12px; margin: 3px; border: 1px solid #ccc; border-radius: 6px; cursor: pointer; background: white; }
@@ -42,23 +36,20 @@
   <!-- ADMIN AREA -->
   <div id="adminArea" class="admin-card hidden">
     <h3 style="margin-top:0; color:#d35400;">Boshqaruv Paneli</h3>
-    
-    <!-- Mavjud testlar ro'yxati -->
     <div id="activeTestList">
-        <p style="font-size:12px; color:#666;">Hozirgi test:</p>
-        <div id="testDisplay"></div>
+        <p style="font-weight:bold; font-size:14px;">Mavjud barcha testlar:</p>
+        <div id="testListDisplay"></div>
     </div>
-
-    <button class="btn btn-blue" id="addNewBtn" onclick="toggleForm()">➕ Yangi test yaratish</button>
+    <button class="btn btn-blue" style="margin-top:15px;" onclick="openNewForm()">➕ Yangi test qo'shish</button>
 
     <div id="adminForm" class="form-group hidden">
-      <h4 id="formTitle">Yangi test ma'lumotlari</h4>
-      <label>A-D soni:</label> <input type="number" id="adm_n1" value="32">
-      <label>A-F soni:</label> <input type="number" id="adm_n2" value="3">
-      <label>Ochiq soni:</label> <input type="number" id="adm_n3" value="10">
+      <h4 id="formTitle">Test ma'lumotlari</h4>
+      <label>A-D soni:</label> <input type="number" id="adm_n1" value="1">
+      <label>A-F soni:</label> <input type="number" id="adm_n2" value="1">
+      <label>Ochiq soni:</label> <input type="number" id="adm_n3" value="1">
       <label>Boshlanish:</label> <input type="datetime-local" id="adm_start">
       <label>Tugash:</label> <input type="datetime-local" id="adm_end">
-      <label>Kod:</label> <input type="text" id="adm_kod">
+      <label>Kod:</label> <input type="text" id="adm_kod" placeholder="Masalan: MATH01">
       
       <button class="btn btn-orange" onclick="renderKeys()">📝 Javoblarni belgilash</button>
       <div id="keyArea" class="hidden">
@@ -71,12 +62,10 @@
   <!-- USER AREA -->
   <div id="userArea" class="hidden">
     <div id="statusBox" class="status-box"></div>
-    
     <div id="loginForm" class="hidden">
       <input type="text" id="userKod" placeholder="Test kodini kiriting">
-      <button class="btn btn-blue" onclick="startTest()">Testni boshlash</button>
+      <button class="btn btn-blue" onclick="tryAccessTest()">Testni boshlash</button>
     </div>
-
     <div id="testArea" class="hidden">
       <div id="studentQuestions"></div>
       <button id="submitBtn" class="btn btn-green" onclick="submitTest()">📤 Topshirish</button>
@@ -88,11 +77,12 @@
 
 <script>
   const tg = window.Telegram.WebApp;
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxGFBmfyH1ueVuPdSrFMBk3Ojg34Y5mMbJeru5pwkds2je1VWoKGC3SZReKbi4UVwzy/exec";
-  let userId = tg.initDataUnsafe.user?.id;
-  let server = {};
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyi_JVS6IE30PZZGq47hEqUVdjRL8QsP1hzB4BBkCV1TNmdulwMaCsKf7iVhLY_3Yfm/exec";
+  let userId = String(tg.initDataUnsafe.user?.id);
+  let server = { testList: [], isAdmin: false, submittedTests: [] };
   let adminKeys = {};
   let userAnswers = {};
+  let activeStudentTest = null;
 
   async function load() {
     const res = await fetch(`${SCRIPT_URL}?userId=${userId}`);
@@ -101,90 +91,101 @@
 
     if (server.isAdmin) {
       document.getElementById('adminArea').classList.remove('hidden');
-      updateAdminList();
+      displayTestList();
     }
-
-    if (!server.hasTest || server.isExpired) {
-      document.getElementById('userArea').classList.remove('hidden');
-      document.getElementById('statusBox').innerHTML = "📭 Hozirda mavjud testlar yo'q.";
-      document.getElementById('statusBox').style.background = "#e9ecef";
-    } else if (server.isSubmitted) {
-      showFinal("✅ Test topshirilgan.");
-    } else {
-      document.getElementById('userArea').classList.remove('hidden');
-      checkUserTime();
-    }
+    
+    document.getElementById('userArea').classList.remove('hidden');
+    checkGlobalStatus();
   }
 
-  function updateAdminList() {
-    const display = document.getElementById('testDisplay');
-    if (!server.hasTest) {
-      display.innerHTML = "<p style='font-size:13px;'>Hozircha test yo'q.</p>";
+  function displayTestList() {
+    const cont = document.getElementById('testListDisplay');
+    if (server.testList.length === 0) {
+      cont.innerHTML = "<p style='font-size:12px;'>Hozircha hech qanday test yaratilmagan.</p>";
       return;
     }
-    const c = server.config;
-    display.innerHTML = `
+    cont.innerHTML = server.testList.map(t => `
       <div class="test-item">
         <div class="test-info">
-          <b>Kod: ${c.kod}</b><br>
-          🕒 ${new Date(c.start).toLocaleString()}<br>
-          🏁 ${new Date(c.end).toLocaleString()}
+          <b>Kod: ${t.kod}</b> (${t.n1+t.n2+t.n3} ta savol)<br>
+          🕒 ${new Date(t.start).toLocaleString()}<br>
+          🏁 ${new Date(t.end).toLocaleString()}
         </div>
         <div class="actions">
-          <button onclick="editTest()">✏️</button>
-          <button onclick="deleteTest()">🗑️</button>
+          <button onclick="editTest('${t.kod}')">✏️</button>
+          <button onclick="deleteTest('${t.kod}')">🗑️</button>
         </div>
       </div>
-    `;
+    `).join('');
   }
 
-  function checkUserTime() {
+  function checkGlobalStatus() {
     const now = new Date();
-    const start = new Date(server.config.start);
+    const activeTests = server.testList.filter(t => new Date(t.end) > now);
     const box = document.getElementById('statusBox');
-    if (now < start) {
-      box.innerHTML = `⏳ Test kutilmoqda... <br> Boshlanish: ${start.toLocaleString()}`;
-      box.style.background = "#fff3cd";
+    
+    if (activeTests.length === 0) {
+      box.innerHTML = "📭 Hozirda mavjud testlar yo'q.";
+      box.style.background = "#e9ecef";
     } else {
-      box.innerHTML = "✅ Test faol!";
+      box.innerHTML = "✅ Tizimda faol testlar mavjud. Kirish uchun kodni yozing.";
       box.style.background = "#d4edda";
       document.getElementById('loginForm').classList.remove('hidden');
     }
   }
 
-  function toggleForm() { document.getElementById('adminForm').classList.toggle('hidden'); }
-
-  function editTest() {
-    const c = server.config;
-    document.getElementById('adm_n1').value = c.n1;
-    document.getElementById('adm_n2').value = c.n2;
-    document.getElementById('adm_n3').value = c.n3;
-    document.getElementById('adm_start').value = c.start;
-    document.getElementById('adm_end').value = c.end;
-    document.getElementById('adm_kod').value = c.kod;
-    adminKeys = c.keys;
-    document.getElementById('formTitle').innerText = "Testni tahrirlash";
+  function openNewForm() {
     document.getElementById('adminForm').classList.remove('hidden');
+    document.getElementById('formTitle').innerText = "Yangi test yaratish";
+    document.getElementById('adm_n1').value = 1;
+    document.getElementById('adm_n2').value = 1;
+    document.getElementById('adm_n3').value = 1;
+    document.getElementById('adm_kod').value = "";
+    document.getElementById('adm_kod').disabled = false;
+    adminKeys = {};
+    document.getElementById('keyArea').classList.add('hidden');
   }
 
-  async function deleteTest() {
-    if (confirm("Testni o'chirishni tasdiqlaysizmi?")) {
-      await fetch(SCRIPT_URL, {method:'POST', body: JSON.stringify({action:"delete"})});
+  function editTest(kod) {
+    const t = server.testList.find(x => x.kod === kod);
+    document.getElementById('adm_n1').value = t.n1;
+    document.getElementById('adm_n2').value = t.n2;
+    document.getElementById('adm_n3').value = t.n3;
+    document.getElementById('adm_start').value = t.start;
+    document.getElementById('adm_end').value = t.end;
+    document.getElementById('adm_kod').value = t.kod;
+    document.getElementById('adm_kod').disabled = true;
+    adminKeys = t.keys;
+    document.getElementById('formTitle').innerText = "Testni tahrirlash";
+    document.getElementById('adminForm').classList.remove('hidden');
+    renderKeys();
+  }
+
+  async function deleteTest(kod) {
+    if (confirm(`Kodi ${kod} bo'lgan testni o'chirmoqchimisiz?`)) {
+      await fetch(SCRIPT_URL, {method:'POST', body: JSON.stringify({action:"delete", kod: kod})});
       location.reload();
     }
   }
 
   function renderKeys() {
     document.getElementById('keyArea').classList.remove('hidden');
-    generateQuestions(document.getElementById('adminQuestions'), "admin");
+    const cont = document.getElementById('adminQuestions');
+    cont.innerHTML = "";
+    const c = {
+      n1: parseInt(document.getElementById('adm_n1').value),
+      n2: parseInt(document.getElementById('adm_n2').value),
+      n3: parseInt(document.getElementById('adm_n3').value)
+    };
+    generateFields(cont, c, "admin");
   }
 
   async function saveData() {
     const payload = {
       action: "save",
-      n1: document.getElementById('adm_n1').value,
-      n2: document.getElementById('adm_n2').value,
-      n3: document.getElementById('adm_n3').value,
+      n1: parseInt(document.getElementById('adm_n1').value),
+      n2: parseInt(document.getElementById('adm_n2').value),
+      n3: parseInt(document.getElementById('adm_n3').value),
       start: document.getElementById('adm_start').value,
       end: document.getElementById('adm_end').value,
       kod: document.getElementById('adm_kod').value,
@@ -194,22 +195,46 @@
     location.reload();
   }
 
-  // Universal Generator
-  function generateQuestions(cont, mode) {
+  function tryAccessTest() {
+    const inputKod = document.getElementById('userKod').value.trim();
+    const test = server.testList.find(t => t.kod === inputKod);
+    const box = document.getElementById('statusBox');
+
+    if (!test) { alert("Bunday kodli test topilmadi!"); return; }
+    
+    const now = new Date();
+    if (now < new Date(test.start)) {
+      alert(`Bu test hali boshlanmadi. Boshlanish vaqti: ${new Date(test.start).toLocaleString()}`);
+      return;
+    }
+    if (now > new Date(test.end)) {
+      alert("Bu testning muddati tugagan!");
+      return;
+    }
+    if (server.submittedTests.includes(inputKod)) {
+      alert("Siz bu testni topshirib bo'lgansiz!");
+      return;
+    }
+
+    activeStudentTest = test;
+    document.getElementById('loginForm').classList.add('hidden');
+    document.getElementById('testArea').classList.remove('hidden');
+    generateFields(document.getElementById('studentQuestions'), test, "user");
+  }
+
+  function generateFields(cont, config, mode) {
     cont.innerHTML = "";
-    let c = (mode === "admin") ? 
-      {n1: document.getElementById('adm_n1').value, n2: document.getElementById('adm_n2').value, n3: document.getElementById('adm_n3').value} : 
-      server.config;
     let qNum = 1;
-    for(let i=0; i<c.n1; i++) addMCQ(cont, qNum++, ['A','B','C','D'], mode);
-    for(let i=0; i<c.n2; i++) addMCQ(cont, qNum++, ['A','B','C','D','E','F'], mode);
-    for(let i=0; i<c.n3; i++) addOpen(cont, qNum++, mode);
+    for(let i=0; i<config.n1; i++) addMCQ(cont, qNum++, ['A','B','C','D'], mode);
+    for(let i=0; i<config.n2; i++) addMCQ(cont, qNum++, ['A','B','C','D','E','F'], mode);
+    for(let i=0; i<config.n3; i++) addOpen(cont, qNum++, mode);
   }
 
   function addMCQ(p, n, opts, m) {
     const d = document.createElement('div'); d.className = 'q-card';
+    const currentKeys = (m === 'admin') ? adminKeys : userAnswers;
     d.innerHTML = `<b>${n}.</b> <span id="${m}-grp-${n}">
-      ${opts.map(o => `<button class="opt-btn ${ (m==='admin' && adminKeys[n]===o)?'selected':'' }" onclick="sel(${n},'${o}','${m}',this)">${o}</button>`).join('')}</span>`;
+      ${opts.map(o => `<button class="opt-btn ${currentKeys[n]===o ? 'selected' : ''}" onclick="sel(${n},'${o}','${m}',this)">${o}</button>`).join('')}</span>`;
     p.appendChild(d);
   }
 
@@ -221,7 +246,7 @@
 
   function addOpen(p, n, m) {
     const d = document.createElement('div'); d.className = 'q-card';
-    const val = (m==='admin') ? (adminKeys[n] || {a:'',b:''}) : {a:'',b:''};
+    const val = (m === 'admin') ? (adminKeys[n] || {a:'', b:''}) : {a:'', b:''};
     d.innerHTML = `<b>${n}.</b> a)<math-field value="${val.a}" oninput="updO(${n},'a','${m}',this)"></math-field> b)<math-field value="${val.b}" oninput="updO(${n},'b','${m}',this)"></math-field>`;
     p.appendChild(d);
   }
@@ -232,30 +257,20 @@
     obj[n][p] = el.value;
   }
 
-  function startTest() {
-    if (document.getElementById('userKod').value.trim() === String(server.config.kod).trim()) {
-      document.getElementById('loginForm').classList.add('hidden');
-      document.getElementById('testArea').classList.remove('hidden');
-      generateQuestions(document.getElementById('studentQuestions'), "user");
-    } else alert("Kod xato!");
-  }
-
   async function submitTest() {
+    if(!confirm("Javoblarni yuborishni tasdiqlaysizmi?")) return;
     document.getElementById('submitBtn').disabled = true;
-    await fetch(SCRIPT_URL, {method:'POST', body: JSON.stringify({action:"submit", userId:userId, answers:userAnswers})});
-    showFinal("✅ Test topshirildi.");
-    setTimeout(() => tg.close(), 2000);
-  }
-
-  function showFinal(m) {
-    document.getElementById('userArea').classList.add('hidden');
-    document.getElementById('adminArea').classList.add('hidden');
-    document.getElementById('finalMsg').innerHTML = `<h3>${m}</h3>`;
+    await fetch(SCRIPT_URL, {
+      method:'POST', 
+      body: JSON.stringify({action:"submit", userId:userId, kod: activeStudentTest.kod, answers:userAnswers})
+    });
+    document.getElementById('testArea').classList.add('hidden');
+    document.getElementById('finalMsg').innerHTML = "<h3>✅ Test muvaffaqiyatli topshirildi!</h3>";
     document.getElementById('finalMsg').classList.remove('hidden');
+    setTimeout(() => tg.close(), 2500);
   }
 
   load();
 </script>
 </body>
 </html>
-
