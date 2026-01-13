@@ -65,7 +65,7 @@
 
 <script>
   const tg = window.Telegram.WebApp; tg.ready(); tg.expand();
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxrZq3_0dxeDCCjkO9Zrc_eDiZzkhBOzM7FNuGY4sM6ci25eK8fNJBMP5npGFsM5hVB/exec"; 
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxTw_wdcjRtbwBOt9SEs-pD7kIJ4nyCVUsdO0oY749bljGHC3c8u2TcIsizklPbWVUj/exec"; 
   let userId = String(tg.initDataUnsafe.user?.id || "");
   let serverData = { testList: [], isAdmin: false, submittedTests: [] };
   let adminKeys = {}, adminCats = {}, studentAns = {}, activeTest = null;
@@ -202,4 +202,5 @@
 </script>
 </body>
 </html>
+
 
