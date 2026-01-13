@@ -91,8 +91,8 @@
       return `<div class="test-item">
         <div class="test-info">
           <b>KOD: ${t.kod}</b><br>
-          🕒 ${new Date(t.start).toLocaleString()}<br>
-          🏁 ${new Date(t.end).toLocaleString()}<br>
+          🏁 ${new Date(t.start).toLocaleString()}<br>
+          ❌ ${new Date(t.end).toLocaleString()}<br>
           ${isExpired ? '<span class="status-badge status-expired">Tugagan</span>' : '<span class="status-badge status-active">Faol</span>'}
         </div>
         <div style="display:flex;">
@@ -204,3 +204,4 @@
 </script>
 </body>
 </html>
+
