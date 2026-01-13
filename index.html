@@ -188,21 +188,50 @@
 
   // --- USER TEST ---
   function access() {
-    const k = document.getElementById('userKod').value.trim();
-    const t = serverData.testList.find(x => x.kod === k);
-    if (!t) return alert("Kod xato!");
-    if (serverData.submittedTests.includes(k)) return alert("Siz topshirib bo'lgansiz!");
-    activeTest = t;
+    const userKodInput = document.getElementById('userKod').value.trim();
+    
+    // Testni ro'yxatdan qidirish (ma'lumot turini tekshirmasdan, faqat qiymatni solishtirish)
+    const test = serverData.testList.find(x => String(x.kod).trim() === String(userKodInput));
+
+    if (!test) {
+        alert("❌ Bunday kodli test topilmadi!");
+        return;
+    }
+
+    const now = new Date();
+    const startTime = new Date(test.start);
+    const endTime = new Date(test.end);
+
+    // 1. Vaqtni tekshirish
+    if (now < startTime) {
+        alert(`⏳ Bu test hali boshlanmagan!\nBoshlanish vaqti: ${startTime.toLocaleString('uz-UZ')}`);
+        return;
+    }
+
+    if (now > endTime) {
+        alert("❌ Kechirasiz, ushbu testning muddati tugagan!");
+        location.reload();
+        return;
+    }
+
+    // 2. Avval topshirganini tekshirish
+    if (serverData.submittedTests && serverData.submittedTests.includes(String(test.kod))) {
+        alert("🚫 Siz ushbu testni allaqachon topshirib bo'lgansiz!");
+        return;
+    }
+
+    // 3. Hammasi to'g'ri bo'lsa - Testni ochish
+    activeTest = test;
     document.getElementById('loginForm').classList.add('hidden');
+    document.getElementById('statusBox').classList.add('hidden');
     document.getElementById('testArea').classList.remove('hidden');
+    
     const cont = document.getElementById('studentQuestions');
     cont.innerHTML = "";
-    let q = 1;
-    for(let i=0; i<t.n1; i++) createQ(cont, q++, ['A','B','C','D'], "user", "mcq");
-    for(let i=0; i<t.n2; i++) createQ(cont, q++, ['A','B','C','D','E','F'], "user", "mcq");
-    for(let i=0; i<t.n3; i++) createQ(cont, q++, null, "user", "double");
-    for(let i=0; i<t.n4; i++) createQ(cont, q++, null, "user", "single");
-  }
+    
+    // Savollarni generatsiya qilish
+    generateUI(cont, test, "user");
+}
 
   async function submitTest() {
     document.getElementById('subBtn').disabled=true;
@@ -245,3 +274,4 @@
 </script>
 </body>
 </html>
+
