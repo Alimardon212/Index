@@ -2,36 +2,40 @@
 <html lang="uz">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Repetitsion Test - Rash Pro</title>
+  <title>Milliy Sertifikat - Rash Pro</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/mathlive"></script>
   <style>
-    body{font-family:'Segoe UI',sans-serif; background:#f4f7f9; padding:10px; margin:0; color:#333;}
-    .container{max-width:550px; margin:auto; background:white; padding:15px; border-radius:15px; box-shadow:0 2px 10px rgba(0,0,0,0.1);}
+    body{font-family:'Segoe UI', Tahoma, sans-serif; background:#f4f7f9; padding:10px; margin:0; color:#333;}
+    .container{max-width:550px; margin:auto; background:white; padding:15px; border-radius:15px; box-shadow:0 4px 15px rgba(0,0,0,0.1);}
     .hidden{display:none;}
     .admin-card{background:#fff4e5; border:1px solid #f39c12; padding:12px; border-radius:10px; margin-bottom:15px;}
-    .test-item{background:white; padding:10px; border-radius:8px; margin-top:8px; border-left:5px solid #f39c12; display:flex; justify-content:space-between; align-items:center; box-shadow:0 2px 5px rgba(0,0,0,0.05);}
+    .test-item{background:white; padding:10px; border-radius:8px; margin-top:10px; border-left:5px solid #f39c12; display:flex; justify-content:space-between; align-items:center; box-shadow:0 2px 5px rgba(0,0,0,0.05);}
+    .test-info {font-size: 11px; flex: 1;}
+    .status-badge {font-size: 9px; padding: 2px 5px; border-radius: 4px; color: white; display: inline-block; margin-top: 3px;}
+    .status-active {background: #2ecc71;}
+    .status-expired {background: #95a5a6;}
     .btn{width:100%; padding:14px; border:none; border-radius:10px; color:white; font-size:15px; font-weight:bold; cursor:pointer; margin-top:10px;}
     .btn-blue{background:#3498db;} .btn-green{background:#2ecc71;} .btn-orange{background:#f39c12;}
     input{width:100%; padding:10px; margin:5px 0 12px; border:1px solid #ccc; border-radius:8px; box-sizing:border-box;}
     .q-card{border-bottom:1px solid #eee; padding:15px 0;}
-    .opt-btn{padding:8px 12px; margin:2px; border:1px solid #ccc; border-radius:6px; cursor:pointer; background:white;}
+    .opt-btn{padding:8px 12px; margin:2px; border:1px solid #ccc; border-radius:6px; cursor:pointer; background:white; font-weight:bold;}
     .opt-btn.selected{background:#3498db; color:white;}
     .cat-btn{padding:5px 12px; font-size:11px; border:1px solid #ddd; border-radius:6px; cursor:pointer; background:#fff; font-weight: bold;}
     .cat-btn.active{background:#e67e22; color:white; border-color:#d35400;}
     math-field{width:100%; border:1px solid #ccc; border-radius:6px; margin-top:5px; font-size:18px;}
-    .status-box{padding:20px; border-radius:12px; text-align:center; font-weight:bold; margin-bottom:15px;}
+    .status-box{padding:20px; border-radius:12px; text-align:center; font-weight:bold; margin-bottom:15px; line-height: 1.4;}
   </style>
 </head>
 <body>
 <div class="container">
   <div id="loader" style="text-align:center; padding:20px;">⌛ Yuklanmoqda...</div>
 
-  <!-- ADMIN AREA -->
+  <!-- ADMIN -->
   <div id="adminArea" class="admin-card hidden">
-    <h3 style="margin:0; color:#d35400; text-align:center;">🛠 Boshqaruv Paneli</h3>
+    <h3 style="margin:0 0 10px; color:#d35400; text-align:center;">🛠 Boshqaruv Paneli</h3>
     <div id="testListDisplay"></div>
-    <button class="btn btn-blue" onclick="openNewForm()">➕ Yangi Test Yaratish</button>
+    <button class="btn btn-blue" onclick="openNewForm()">➕ Yangi Test Qo'shish</button>
     <div id="adminForm" class="hidden">
       <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
         <div><label style="font-size:10px;">A-D:</label><input type="number" id="adm_n1" value="0"></div>
@@ -43,14 +47,11 @@
       <input type="datetime-local" id="adm_start"> <input type="datetime-local" id="adm_end">
       <input type="text" id="adm_kod" placeholder="Test kodi">
       <button class="btn btn-orange" onclick="renderAdminKeys()">📝 Javoblarni belgilash</button>
-      <div id="keyArea" class="hidden">
-        <div id="adminQuestions"></div>
-        <button class="btn btn-green" id="saveBtn" onclick="saveData()">💾 Barchasini Saqlash</button>
-      </div>
+      <div id="keyArea" class="hidden"><div id="adminQuestions"></div><button class="btn btn-green" id="saveBtn" onclick="saveData()">💾 Barchasini Saqlash</button></div>
     </div>
   </div>
 
-  <!-- USER AREA -->
+  <!-- USER -->
   <div id="userArea" class="hidden">
     <div id="statusBox" class="status-box"></div>
     <div id="loginForm" class="hidden">
@@ -65,7 +66,7 @@
 
 <script>
   const tg = window.Telegram.WebApp; tg.ready(); tg.expand();
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxOjk-UWzsIAXoOICSQv4aGncj-TYXzNBgaWdqDdue1rhMsEHHbBOSL8s3_oV_bz81F/exec"; 
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzdWBUViY5pILPIToB0cNdSVlrnklBew-xTU79EEJc4Fz3iTwoT86__6lqiDgKc7Vyn/exec"; 
   let userId = String(tg.initDataUnsafe.user?.id || "");
   let serverData = { testList: [], isAdmin: false, submittedTests: [] };
   let adminKeys = {}, adminCats = {}, studentAns = {}, activeTest = null;
@@ -75,23 +76,32 @@
       const res = await fetch(`${SCRIPT_URL}?userId=${userId}`);
       serverData = await res.json();
       document.getElementById('loader').classList.add('hidden');
-      if (serverData.isAdmin) { document.getElementById('adminArea').classList.remove('hidden'); showAdminList(); }
+      if (serverData.isAdmin) { document.getElementById('adminArea').classList.remove('hidden'); displayAdminTests(); }
       document.getElementById('userArea').classList.remove('hidden');
       checkStatus();
     } catch (e) { document.getElementById('loader').innerText = "Xato!"; }
   }
 
-  function showAdminList() {
+  function displayAdminTests() {
     const cont = document.getElementById('testListDisplay');
-    cont.innerHTML = serverData.testList.map(t => `
-      <div class="test-item">
-        <div style="font-size:12px;"><b>KOD: ${t.kod}</b><br><small>${new Date(t.start).toLocaleString()}</small></div>
-        <div>
-          <button onclick="calc('${t.kod}')">📊</button>
-          <button onclick="edit('${t.kod}')">✏️</button>
-          <button onclick="del('${t.kod}')">🗑️</button>
+    const now = new Date();
+    if (!serverData.testList.length) { cont.innerHTML = "<p style='font-size:11px;'>Hozircha testlar yo'q.</p>"; return; }
+    cont.innerHTML = serverData.testList.map(t => {
+      const isExpired = now > new Date(t.end);
+      return `<div class="test-item">
+        <div class="test-info">
+          <b>KOD: ${t.kod}</b><br>
+          🕒 ${new Date(t.start).toLocaleString()}<br>
+          🏁 ${new Date(t.end).toLocaleString()}<br>
+          ${isExpired ? '<span class="status-badge status-expired">Tugagan</span>' : '<span class="status-badge status-active">Faol</span>'}
         </div>
-      </div>`).join('') || "<p style='font-size:12px;'>Testlar yo'q.</p>";
+        <div style="display:flex;">
+          <button onclick="calculate('${t.kod}')">📊</button>
+          <button onclick="editTest('${t.kod}')">✏️</button>
+          <button onclick="deleteTest('${t.kod}')">🗑️</button>
+        </div>
+      </div>`;
+    }).join('');
   }
 
   function checkStatus() {
@@ -99,25 +109,30 @@
     const active = serverData.testList.filter(t => new Date(t.start) <= now && new Date(t.end) > now);
     const upcoming = serverData.testList.filter(t => new Date(t.start) > now).sort((a,b)=>new Date(a.start)-new Date(b.start));
     const box = document.getElementById('statusBox');
-    const login = document.getElementById('loginForm');
-    
     if (active.length > 0) {
       box.innerHTML = "✅ Test faol! Kodni kiriting."; box.style.background = "#d4edda";
-      login.classList.remove('hidden');
+      document.getElementById('loginForm').classList.remove('hidden');
     } else if (upcoming.length > 0) {
       box.innerHTML = `⏳ Kutilmoqda. <br><small>Boshlanish: ${new Date(upcoming[0].start).toLocaleString('uz-UZ')}</small>`;
       box.style.background = "#fff3cd";
-      login.classList.add('hidden');
-    } else {
-      box.innerHTML = "📭 Hozirda mavjud testlar yo'q."; box.style.background = "#e9ecef";
-      login.classList.add('hidden');
-    }
+    } else { box.innerHTML = "📭 Hozirda mavjud testlar yo'q."; box.style.background = "#e9ecef"; }
   }
 
   function openNewForm() {
     document.getElementById('adminForm').classList.remove('hidden');
     document.getElementById('adm_kod').disabled = false;
     adminKeys = {}; adminCats = {};
+    document.getElementById('keyArea').classList.add('hidden');
+  }
+
+  function editTest(kod) {
+    const t = serverData.testList.find(x => x.kod === kod);
+    document.getElementById('adm_n1').value=t.n1; document.getElementById('adm_n2').value=t.n2;
+    document.getElementById('adm_n3').value=t.n3; document.getElementById('adm_n4').value=t.n4;
+    document.getElementById('adm_start').value = t.start.split('.')[0]; 
+    document.getElementById('adm_end').value = t.end.split('.')[0];
+    document.getElementById('adm_kod').value = t.kod; document.getElementById('adm_kod').disabled=true;
+    adminKeys = t.keys; adminCats = t.cats || {}; document.getElementById('adminForm').classList.remove('hidden'); renderAdminKeys();
   }
 
   function renderAdminKeys() {
@@ -134,14 +149,10 @@
   function addQ(p, n, opts, m, type) {
     const d = document.createElement('div'); d.className = 'q-card';
     const ks = (m === 'admin') ? adminKeys : studentAns;
-    if (m === 'admin' && !adminCats[n]) adminCats[n] = 'alg'; // DEFAULT ALGEBRA TANLANGAN
-
+    if (m === 'admin' && !adminCats[n]) adminCats[n] = 'alg';
     let h = "";
     if (m === 'admin') {
-      h += `<div>
-        <button class="cat-btn ${adminCats[n]==='alg'?'active':''}" onclick="adminCats[${n}]='alg'; this.parentElement.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('active')); this.classList.add('active')">Algebra</button>
-        <button class="cat-btn ${adminCats[n]==='geo'?'active':''}" onclick="adminCats[${n}]='geo'; this.parentElement.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('active')); this.classList.add('active')">Geometriya</button>
-      </div>`;
+      h += `<div><button class="cat-btn ${adminCats[n]==='alg'?'active':''}" onclick="adminCats[${n}]='alg'; this.parentElement.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('active')); this.classList.add('active')">Algebra</button><button class="cat-btn ${adminCats[n]==='geo'?'active':''}" onclick="adminCats[${n}]='geo'; this.parentElement.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('active')); this.classList.add('active')">Geometriya</button></div>`;
     }
     h += `<b>${n}.</b> `;
     if (type === "mcq") h += `<span id="${m}-g-${n}">${opts.map(o => `<button class="opt-btn ${ks[n]===o?'selected':''}" onclick="sel(${n},'${o}','${m}',this)">${o}</button>`).join('')}</span>`;
@@ -186,22 +197,10 @@
   function sel(n,v,m,b){ (m==='admin'?adminKeys:studentAns)[n]=v; b.parentElement.querySelectorAll('.opt-btn').forEach(x=>x.classList.remove('selected')); b.classList.add('selected'); }
   function upD(n,p,m,el){ let o=(m==='admin'?adminKeys:studentAns); if(!o[n])o[n]={a:'',b:''}; o[n][p]=el.value; }
   function upS(n,m,el){ (m==='admin'?adminKeys:studentAns)[n]=el.value; }
-  function calc(k){ fetch(SCRIPT_URL,{method:'POST', body:JSON.stringify({action:"calculate",kod:k})}).then(()=>alert("Tayyor!")); }
-  function del(k){ if(confirm("O'chirilsinmi?")) fetch(SCRIPT_URL,{method:'POST', body:JSON.stringify({action:"delete",kod:k})}).then(()=>location.reload()); }
-  function edit(kod) {
-    const t = serverData.testList.find(x => x.kod === kod);
-    document.getElementById('adm_n1').value=t.n1; document.getElementById('adm_n2').value=t.n2;
-    document.getElementById('adm_n3').value=t.n3; document.getElementById('adm_n4').value=t.n4;
-    document.getElementById('adm_start').value = t.start.split('.')[0]; 
-    document.getElementById('adm_end').value = t.end.split('.')[0];
-    document.getElementById('adm_kod').value = t.kod; document.getElementById('adm_kod').disabled=true;
-    adminKeys = t.keys; adminCats = t.cats || {}; document.getElementById('adminForm').classList.remove('hidden'); renderAdminKeys();
-  }
+  function calculate(k){ fetch(SCRIPT_URL,{method:'POST', body:JSON.stringify({action:"calculate",kod:k})}).then(()=>alert("Hisoblandi!")); }
+  function deleteTest(k){ if(confirm("O'chirilsinmi?")) fetch(SCRIPT_URL,{method:'POST', body:JSON.stringify({action:"delete",kod:k})}).then(()=>location.reload()); }
 
   load();
 </script>
 </body>
 </html>
-
-
-
