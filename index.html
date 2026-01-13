@@ -1,26 +1,39 @@
 <!DOCTYPE html>
-<html>
+<html lang="uz">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Rash Test Pro</title>
+  <title>Rash Test Pro System</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/mathlive"></script>
   <style>
-    body{font-family:sans-serif; background:#f4f7f9; padding:10px; margin:0;}
-    .container{max-width:550px; margin:auto; background:white; padding:15px; border-radius:15px; box-shadow:0 2px 10px rgba(0,0,0,0.1);}
+    body{font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:#f4f7f9; padding:10px; margin:0; color: #333;}
+    .container{max-width:550px; margin:auto; background:white; padding:15px; border-radius:15px; box-shadow:0 4px 15px rgba(0,0,0,0.1);}
     .hidden{display:none;}
+    
+    /* Admin Panel */
     .admin-card{background:#fff4e5; border:1px solid #f39c12; padding:15px; border-radius:12px; margin-bottom:15px;}
-    .test-item{background:white; padding:10px; border-radius:8px; margin-top:10px; border-left:5px solid #f39c12; display:flex; justify-content:space-between; align-items:center; box-shadow:0 2px 5px rgba(0,0,0,0.1);}
-    .btn{width:100%; padding:14px; border:none; border-radius:10px; color:white; font-size:15px; font-weight:bold; cursor:pointer; margin-top:10px;}
-    .btn-blue{background:#3498db;} .btn-green{background:#2ecc71;} .btn-orange{background:#f39c12;}
-    input{width:100%; padding:12px; margin:5px 0; border:1px solid #ccc; border-radius:8px; box-sizing:border-box;}
-    .q-card{border-bottom:1px solid #eee; padding:15px 0;}
-    .opt-btn{padding:8px 12px; margin:2px; border:1px solid #ccc; border-radius:6px; cursor:pointer; background:white;}
-    .opt-btn.selected{background:#3498db; color:white;}
-    .cat-btn{padding:4px 8px; font-size:10px; border:1px solid #ddd; border-radius:4px; cursor:pointer; background:#eee;}
-    .cat-btn.active{background:#e67e22; color:white;}
-    math-field{width:100%; border:1px solid #ccc; border-radius:6px; margin-top:5px; font-size:18px;}
-    .status-box{padding:20px; border-radius:12px; text-align:center; font-weight:bold; margin-bottom:15px;}
+    .q-type-grid {display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;}
+    .q-type-item {display: flex; flex-direction: column;}
+    .q-type-item label {font-size: 11px; font-weight: bold; color: #d35400; margin-bottom: 3px;}
+    .test-item{background:white; padding:10px; border-radius:8px; margin-top:8px; border-left:5px solid #f39c12; display:flex; justify-content:space-between; align-items:center; box-shadow: 0 2px 5px rgba(0,0,0,0.05);}
+    
+    /* Buttons */
+    .btn{width:100%; padding:14px; border:none; border-radius:10px; color:white; font-size:15px; font-weight:bold; cursor:pointer; margin-top:10px; transition: 0.3s;}
+    .btn:active {transform: scale(0.98);}
+    .btn-blue{background:#3498db;} .btn-green{background:#2ecc71;} .btn-orange{background:#f39c12;} .btn-red{background:#e74c3c;}
+    
+    input{width:100%; padding:10px; margin:5px 0 10px; border:1px solid #ccc; border-radius:8px; box-sizing:border-box; font-size: 14px;}
+    
+    /* Question Cards */
+    .q-card{border-bottom: 1px solid #eee; padding:15px 0; position: relative;}
+    .opt-btn{padding:8px 12px; margin:2px; border:1px solid #ccc; border-radius:6px; cursor:pointer; background:white; font-weight:bold;}
+    .opt-btn.selected{background:#3498db; color:white; border-color: #2980b9;}
+    
+    .cat-btn{padding:5px 12px; font-size:11px; border:1px solid #ddd; border-radius:6px; cursor:pointer; background:#fff; font-weight: bold;}
+    .cat-btn.active{background:#e67e22; color:white; border-color:#d35400; box-shadow: 0 2px 4px rgba(0,0,0,0.2);}
+    
+    math-field{width:100%; border:1px solid #ccc; border-radius:6px; margin-top:5px; font-size:18px; background:white;}
+    .status-box{padding:20px; border-radius:12px; text-align:center; font-weight:bold; margin-bottom:15px; line-height: 1.5;}
   </style>
 </head>
 <body>
@@ -29,26 +42,24 @@
 
   <!-- ADMIN SECTION -->
   <div id="adminArea" class="admin-card hidden">
-    <h3 style="margin:0; color:#d35400;">Boshqaruv</h3>
+    <h3 style="margin:0 0 10px; color:#d35400; text-align:center;">🛠 Boshqaruv</h3>
     <div id="testListDisplay"></div>
-    <button class="btn btn-blue" onclick="openNew()">➕ Yangi Test Yaratish</button>
-    
+    <button class="btn btn-blue" onclick="openNewForm()">➕ Yangi Test Qo'shish</button>
     <div id="adminForm" class="hidden">
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:5px; margin-top:10px;">
-        <div><small>A-D:</small><input type="number" id="adm_n1" value="1"></div>
-        <div><small>A-F:</small><input type="number" id="adm_n2" value="1"></div>
-        <div><small>a/b:</small><input type="number" id="adm_n3" value="1"></div>
-        <div><small>Ochiq:</small><input type="number" id="adm_n4" value="1"></div>
+      <div class="q-type-grid">
+        <div class="q-type-item"><label>Yopiq (A-D):</label><input type="number" id="adm_n1" value="1"></div>
+        <div class="q-type-item"><label>Matching (A-F):</label><input type="number" id="adm_n2" value="1"></div>
+        <div class="q-type-item"><label>Ochiq (a/b):</label><input type="number" id="adm_n3" value="1"></div>
+        <div class="q-type-item"><label>Ochiq (S):</label><input type="number" id="adm_n4" value="1"></div>
       </div>
-      <small>Boshlanish va Tugash vaqti:</small>
-      <input type="datetime-local" id="adm_start">
-      <input type="datetime-local" id="adm_end">
-      <input type="text" id="adm_kod" placeholder="Test kodi">
+      <label style="font-size:11px; font-weight:bold;">Vaqtni belgilang:</label>
+      <input type="datetime-local" id="adm_start"> <input type="datetime-local" id="adm_end">
+      <input type="text" id="adm_kod" placeholder="Test kodi (ID)">
       
       <button class="btn btn-orange" onclick="renderKeys()">📝 Kalitlar va Fanlar</button>
       <div id="keyArea" class="hidden">
         <div id="adminQs"></div>
-        <button class="btn btn-green" onclick="save()">💾 Saqlash</button>
+        <button class="btn btn-green" id="saveBtn" onclick="saveData()">💾 Barchasini Saqlash</button>
       </div>
     </div>
   </div>
@@ -58,18 +69,20 @@
     <div id="statusBox" class="status-box"></div>
     <div id="loginForm" class="hidden">
       <input type="text" id="userKod" placeholder="Test kodini kiriting">
-      <button class="btn btn-blue" onclick="access()">Testni boshlash</button>
+      <button class="btn btn-blue" onclick="accessTest()">Testni boshlash</button>
     </div>
     <div id="testArea" class="hidden">
       <div id="studentQs"></div>
-      <button id="subBtn" class="btn btn-green" onclick="submit()">📤 Topshirish</button>
+      <button id="subBtn" class="btn btn-green" onclick="submitTest()">📤 Topshirish</button>
     </div>
   </div>
+
+  <div id="finalMsg" class="hidden" style="text-align:center; padding:40px;"></div>
 </div>
 
 <script>
   const tg = window.Telegram.WebApp; tg.ready(); tg.expand();
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz-Vg5-P65IhLxgiKYRrveUyQVH-2tN4rcbClHn04EFrT61j4fXttxEbaB5Bn0aU26x/exec"; // <--- O'zingiznikini qo'ying
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz-Vg5-P65IhLxgiKYRrveUyQVH-2tN4rcbClHn04EFrT61j4fXttxEbaB5Bn0aU26x/exec"; // <--- Google Script URL-ni bu yerga qo'ying
   let userId = String(tg.initDataUnsafe.user?.id || "");
   let server = { testList: [], isAdmin: false, submittedTests: [] };
   let adminKeys = {}, adminCats = {}, studentAns = {}, activeTest = null;
@@ -85,73 +98,138 @@
         showAdminList();
       }
       document.getElementById('userArea').classList.remove('hidden');
-      checkStatus();
-    } catch (e) { document.getElementById('loader').innerText = "Ulanishda xato!"; }
+      checkGlobalStatus();
+    } catch (e) { document.getElementById('loader').innerText = "Ulanishda xato yuz berdi!"; }
   }
 
   function showAdminList() {
     const cont = document.getElementById('testListDisplay');
     if (!server.testList || server.testList.length === 0) {
-      cont.innerHTML = "<p style='font-size:12px;'>Testlar yo'q.</p>";
+      cont.innerHTML = "<p style='font-size:12px;'>Hozircha testlar yaratilmagan.</p>";
       return;
     }
     cont.innerHTML = server.testList.map(t => `
       <div class="test-item">
         <div style="font-size:12px;"><b>${t.kod}</b><br><small>${new Date(t.start).toLocaleString()}</small></div>
         <div>
-          <button onclick="calc('${t.kod}')">📊</button>
-          <button onclick="edit('${t.kod}')">✏️</button>
-          <button onclick="del('${t.kod}')">🗑️</button>
+          <button onclick="calc('${t.kod}')" title="Natijani hisoblash">📊</button>
+          <button onclick="edit('${t.kod}')" title="Tahrirlash">✏️</button>
+          <button onclick="del('${t.kod}')" title="O'chirish">🗑️</button>
         </div>
       </div>`).join('');
   }
 
-  function checkStatus() {
+  function checkGlobalStatus() {
     const now = new Date();
-    const hasActive = server.testList.some(t => new Date(t.end) > now);
+    const activeTests = server.testList.filter(t => new Date(t.start) <= now && new Date(t.end) > now);
+    const upcomingTests = server.testList.filter(t => new Date(t.start) > now).sort((a,b) => new Date(a.start) - new Date(b.start));
+    
     const box = document.getElementById('statusBox');
-    if (hasActive) {
-      box.innerHTML = "✅ Faol testlar mavjud. Kodni kiriting.";
+    const login = document.getElementById('loginForm');
+
+    if (activeTests.length > 0) {
+      box.innerHTML = "✅ Tizimda faol testlar mavjud.<br>Kirish uchun kodni yozing.";
       box.style.background = "#d4edda";
-      document.getElementById('loginForm').classList.remove('hidden');
+      box.style.color = "#155724";
+      login.classList.remove('hidden');
+    } else if (upcomingTests.length > 0) {
+      const next = upcomingTests[0];
+      const startTime = new Date(next.start).toLocaleString('uz-UZ');
+      box.innerHTML = `⏳ Navbatdagi test kutilmoqda.<br><small>Boshlanish vaqti: <b>${startTime}</b></small>`;
+      box.style.background = "#fff3cd";
+      box.style.color = "#856404";
+      login.classList.add('hidden');
     } else {
       box.innerHTML = "📭 Hozirda mavjud testlar yo'q.";
       box.style.background = "#e9ecef";
+      box.style.color = "#495057";
+      login.classList.add('hidden');
     }
   }
 
-  async function calc(k){ if(confirm("Natijalar hisoblansinmi?")) { await fetch(SCRIPT_URL,{method:'POST', body:JSON.stringify({action:"calculate",kod:k})}); alert("Hisoblandi! Final_Results varag'ini ko'ring."); } }
-  function openNew(){ document.getElementById('adminForm').classList.remove('hidden'); document.getElementById('adm_kod').disabled=false; adminKeys={}; adminCats={}; }
+  // --- ADMIN FUNCTIONS ---
+  async function calc(k){ 
+    if(!confirm(k + " natijalari hisoblansinmi?")) return;
+    await fetch(SCRIPT_URL, {method:'POST', body:JSON.stringify({action:"calculate", kod:k})}); 
+    alert("Natijalar 'Final_Results' varag'ida tayyor!"); 
+  }
+
+  function openNewForm() {
+    document.getElementById('adminForm').classList.remove('hidden');
+    document.getElementById('adm_kod').disabled = false;
+    document.getElementById('formTitle').innerText = "Yangi test yaratish";
+    adminKeys = {}; adminCats = {};
+    document.getElementById('keyArea').classList.add('hidden');
+  }
+
   function edit(kod) {
     const t = server.testList.find(x => x.kod === kod);
     document.getElementById('adm_n1').value=t.n1; document.getElementById('adm_n2').value=t.n2;
     document.getElementById('adm_n3').value=t.n3; document.getElementById('adm_n4').value=t.n4;
-    document.getElementById('adm_start').value=t.start.split('.')[0]; 
-    document.getElementById('adm_end').value=t.end.split('.')[0];
-    document.getElementById('adm_kod').value=t.kod; document.getElementById('adm_kod').disabled=true;
-    adminKeys=t.keys; adminCats=t.cats||{}; renderKeys();
+    document.getElementById('adm_start').value = t.start.split('.')[0]; 
+    document.getElementById('adm_end').value = t.end.split('.')[0];
+    document.getElementById('adm_kod').value = t.kod; document.getElementById('adm_kod').disabled=true;
+    adminKeys = t.keys; adminCats = t.cats || {}; 
+    document.getElementById('formTitle').innerText = "Testni tahrirlash";
     document.getElementById('adminForm').classList.remove('hidden');
+    renderKeys();
   }
 
-  async function del(kod) { if(confirm("O'chirilsinmi?")) { await fetch(SCRIPT_URL, {method:'POST', body: JSON.stringify({action:"delete", kod: kod})}); location.reload(); } }
+  async function del(kod) { 
+    if(confirm("Testni butunlay o'chirmoqchimisiz?")) { 
+      await fetch(SCRIPT_URL, {method:'POST', body: JSON.stringify({action:"delete", kod: kod})}); 
+      location.reload(); 
+    } 
+  }
 
   function renderKeys() {
     document.getElementById('keyArea').classList.remove('hidden');
-    const c = { n1: +document.getElementById('adm_n1').value, n2: +document.getElementById('adm_n2').value, n3: +document.getElementById('adm_n3').value, n4: +document.getElementById('adm_n4').value };
-    genUI(document.getElementById('adminQs'), c, "admin");
+    const cont = document.getElementById('adminQuestions');
+    const c = { 
+      n1: +document.getElementById('adm_n1').value, 
+      n2: +document.getElementById('adm_n2').value, 
+      n3: +document.getElementById('adm_n3').value, 
+      n4: +document.getElementById('adm_n4').value 
+    };
+    generateUI(cont, c, "admin");
   }
 
-  async function save() {
-    const p = { action: "save", n1: +document.getElementById('adm_n1').value, n2: +document.getElementById('adm_n2').value, n3: +document.getElementById('adm_n3').value, n4: +document.getElementById('adm_n4').value, start: document.getElementById('adm_start').value, end: document.getElementById('adm_end').value, kod: document.getElementById('adm_kod').value, keys: adminKeys, cats: adminCats };
-    await fetch(SCRIPT_URL, {method:'POST', body: JSON.stringify(p)});
-    location.reload();
+  async function saveData() {
+    const n1 = +document.getElementById('adm_n1').value;
+    const n2 = +document.getElementById('adm_n2').value;
+    const n3 = +document.getElementById('adm_n3').value;
+    const n4 = +document.getElementById('adm_n4').value;
+    const total = n1 + n2 + n3 + n4;
+
+    // ALBATTA TANLANGAN BO'LISHI SHART (VALIDATSIYA)
+    for (let i = 1; i <= total; i++) {
+      if (!adminCats[i]) {
+        alert(`⚠️ Xatolik: ${i}-savol uchun fan turi (Alg/Geo) tanlanmagan!`);
+        return;
+      }
+    }
+
+    const payload = { 
+      action: "save", n1, n2, n3, n4, 
+      start: document.getElementById('adm_start').value, 
+      end: document.getElementById('adm_end').value, 
+      kod: document.getElementById('adm_kod').value, 
+      keys: adminKeys, cats: adminCats 
+    };
+    
+    const res = await fetch(SCRIPT_URL, {method:'POST', body: JSON.stringify(payload)});
+    const status = await res.text();
+    if(status === "CONFLICT") alert("❌ Tanlangan vaqt oralig'ida boshqa test mavjud!");
+    else location.reload();
   }
 
+  // --- USER FUNCTIONS ---
   function access() {
     const k = document.getElementById('userKod').value.trim();
     const t = server.testList.find(x => x.kod === k);
-    if(!t) return alert("Bunday kodli test yo'q!");
+    if(!t) return alert("Kod noto'g'ri!");
     if(server.submittedTests.includes(k)) return alert("Siz bu testni topshirib bo'lgansiz!");
+    
     const now = new Date();
     if(now < new Date(t.start)) return alert("Test hali boshlanmadi!");
     if(now > new Date(t.end)) return alert("Test muddati tugagan!");
@@ -159,52 +237,60 @@
     activeTest = t;
     document.getElementById('loginForm').classList.add('hidden');
     document.getElementById('testArea').classList.remove('hidden');
-    genUI(document.getElementById('studentQs'), t, "user");
+    generateUI(document.getElementById('studentQs'), t, "user");
   }
 
-  function genUI(cont, conf, m) {
+  async function submitTest() {
+    if(!confirm("Javoblarni yuborishni tasdiqlaysizmi?")) return;
+    document.getElementById('subBtn').disabled = true;
+    await fetch(SCRIPT_URL, {method:'POST', body: JSON.stringify({action:"submit", userId:userId, kod: activeTest.kod, answers:studentAns})});
+    document.getElementById('testArea').classList.add('hidden');
+    document.getElementById('finalMsg').innerHTML = "<h3>✅ Javoblar qabul qilindi. Rahmat!</h3>";
+    document.getElementById('finalMsg').classList.remove('hidden');
+    setTimeout(() => tg.close(), 2500);
+  }
+
+  // --- UNIVERSAL UI GENERATOR ---
+  function generateUI(cont, conf, m) {
     cont.innerHTML = ""; let q=1;
-    for(let i=0; i<conf.n1; i++) addM(cont, q++, ['A','B','C','D'], m);
-    for(let i=0; i<conf.n2; i++) addM(cont, q++, ['A','B','C','D','E','F'], m);
-    for(let i=0; i<conf.n3; i++) addD(cont, q++, m);
-    for(let i=0; i<conf.n4; i++) addS(cont, q++, m);
+    for(let i=0; i<conf.n1; i++) createQElement(cont, q++, ['A','B','C','D'], m, "mcq");
+    for(let i=0; i<conf.n2; i++) createQElement(cont, q++, ['A','B','C','D','E','F'], m, "mcq");
+    for(let i=0; i<conf.n3; i++) createQElement(cont, q++, null, m, "double");
+    for(let i=0; i<conf.n4; i++) createQElement(cont, q++, null, m, "single");
   }
 
-  function addM(p, n, os, m) {
+  function createQElement(p, n, opts, m, type) {
     const d = document.createElement('div'); d.className = 'q-card';
-    const ks = (m==='admin')?adminKeys:studentAns;
-    let catH = m==='admin' ? `<div style="margin-bottom:5px"><button class="cat-btn ${adminCats[n]==='alg'?'active':''}" onclick="setCat(${n},'alg',this)">Alg</button> <button class="cat-btn ${adminCats[n]==='geo'?'active':''}" onclick="setCat(${n},'geo',this)">Geo</button></div>` : "";
-    d.innerHTML = `${catH} <b>${n}.</b> <span>${os.map(o => `<button class="opt-btn ${ks[n]===o?'selected':''}" onclick="sel(${n},'${o}','${m}',this)">${o}</button>`).join('')}</span>`;
-    p.appendChild(d);
-  }
+    const ks = (m==='admin') ? adminKeys : studentAns;
+    
+    let html = "";
+    if (m === 'admin') {
+      html += `<div style="margin-bottom:8px">
+        <button class="cat-btn ${adminCats[n]==='alg'?'active':''}" onclick="setCat(${n},'alg',this)">Algebra</button>
+        <button class="cat-btn ${adminCats[n]==='geo'?'active':''}" onclick="setCat(${n},'geo',this)">Geometriya</button>
+      </div>`;
+    }
 
-  function addD(p, n, m) {
-    const d = document.createElement('div'); d.className = 'q-card';
-    const v = (m==='admin')? (adminKeys[n]||{a:'',b:''}):{a:'',b:''};
-    let catH = m==='admin' ? `<div style="margin-bottom:5px"><button class="cat-btn ${adminCats[n]==='alg'?'active':''}" onclick="setCat(${n},'alg',this)">Alg</button> <button class="cat-btn ${adminCats[n]==='geo'?'active':''}" onclick="setCat(${n},'geo',this)">Geo</button></div>` : "";
-    d.innerHTML = `${catH} <b>${n}.</b> a)<math-field value="${v.a}" oninput="upD(${n},'a','${m}',this)"></math-field> b)<math-field value="${v.b}" oninput="upD(${n},'b','${m}',this)"></math-field>`;
-    p.appendChild(d);
-  }
-
-  function addS(p, n, m) {
-    const d = document.createElement('div'); d.className = 'q-card';
-    const v = (m==='admin')? (adminKeys[n]||''):'';
-    let catH = m==='admin' ? `<div style="margin-bottom:5px"><button class="cat-btn ${adminCats[n]==='alg'?'active':''}" onclick="setCat(${n},'alg',this)">Alg</button> <button class="cat-btn ${adminCats[n]==='geo'?'active':''}" onclick="setCat(${n},'geo',this)">Geo</button></div>` : "";
-    d.innerHTML = `${catH} <b>${n}.</b> <math-field value="${v}" oninput="upS(${n},'${m}',this)"></math-field>`;
+    html += `<b>${n}.</b> `;
+    if (type === "mcq") {
+      html += `<span id="${m}-g-${n}">${opts.map(o => `<button class="opt-btn ${ks[n]===o?'selected':''}" onclick="selOpt(${n},'${o}','${m}',this)">${o}</button>`).join('')}</span>`;
+    } else if (type === "double") {
+      const v = (m==='admin' && adminKeys[n]) ? adminKeys[n] : {a:'',b:''};
+      html += `a)<math-field value="${v.a||''}" oninput="upD(${n},'a','${m}',this)"></math-field> b)<math-field value="${v.b||''}" oninput="upD(${n},'b','${m}',this)"></math-field>`;
+    } else {
+      const v = (m==='admin') ? (adminKeys[n]||'') : '';
+      html += `<math-field value="${v}" oninput="upS(${n},'${m}',this)"></math-field>`;
+    }
+    
+    d.innerHTML = html;
     p.appendChild(d);
   }
 
   function setCat(n,c,b){ adminCats[n]=c; b.parentElement.querySelectorAll('.cat-btn').forEach(x=>x.classList.remove('active')); b.classList.add('active'); }
-  function sel(n,v,m,b){ (m==='admin'?adminKeys:studentAns)[n]=v; b.parentElement.querySelectorAll('.opt-btn').forEach(x=>x.classList.remove('selected')); b.classList.add('selected'); }
+  function selOpt(n,v,m,b){ (m==='admin'?adminKeys:studentAns)[n]=v; b.parentElement.querySelectorAll('.opt-btn').forEach(x=>x.classList.remove('selected')); b.classList.add('selected'); }
   function upD(n,p,m,el){ let o=(m==='admin'?adminKeys:studentAns); if(!o[n])o[n]={a:'',b:''}; o[n][p]=el.value; }
   function upS(n,m,el){ (m==='admin'?adminKeys:studentAns)[n]=el.value; }
 
-  async function submit() {
-    if(!confirm("Yuborilsinmi?")) return;
-    document.getElementById('subBtn').disabled=true;
-    await fetch(SCRIPT_URL, {method:'POST', body: JSON.stringify({action:"submit", userId:userId, kod: activeTest.kod, answers:studentAns})});
-    tg.close();
-  }
   load();
 </script>
 </body>
