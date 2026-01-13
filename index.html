@@ -1,100 +1,94 @@
+<!-- Buni GitHub Pages yoki Vercel-ga yuklang -->
 <!DOCTYPE html>
-<html lang="uz">
+<html>
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Rash Test System</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/mathlive"></script>
   <style>
-    body{font-family:sans-serif; background:#f4f7f9; padding:10px; margin:0;}
+    body{font-family:sans-serif; background:#f4f7f9; padding:10px;}
     .container{max-width:550px; margin:auto; background:white; padding:15px; border-radius:15px; box-shadow:0 2px 10px rgba(0,0,0,0.1);}
     .hidden{display:none;}
     .admin-card{background:#fff4e5; border:1px solid #f39c12; padding:10px; border-radius:10px; margin-bottom:15px;}
-    .test-item{background:white; padding:10px; border-radius:8px; margin-top:8px; border-left:5px solid #f39c12; display:flex; justify-content:space-between; align-items:center; box-shadow:0 2px 4px rgba(0,0,0,0.05);}
-    .btn{width:100%; padding:14px; border:none; border-radius:10px; color:white; font-size:15px; font-weight:bold; cursor:pointer; margin-top:10px;}
-    .btn-blue{background:#3498db;} .btn-green{background:#2ecc71;} .btn-orange{background:#f39c12;} .btn-red{background:#e74c3c;}
-    input{width:100%; padding:10px; margin:5px 0 10px; border:1px solid #ccc; border-radius:8px; box-sizing:border-box;}
-    .q-card{border-bottom:1px solid #eee; padding:15px 0;}
-    .opt-btn{padding:8px 12px; margin:2px; border:1px solid #ccc; border-radius:6px; cursor:pointer; background:white; font-weight:bold;}
+    .test-item{background:white; padding:8px; border-radius:5px; margin-top:5px; border-left:4px solid #f39c12; display:flex; justify-content:space-between; align-items:center;}
+    .btn{width:100%; padding:12px; border:none; border-radius:8px; color:white; cursor:pointer; font-weight:bold; margin-top:10px;}
+    .btn-blue{background:#3498db;} .btn-green{background:#2ecc71;}
+    input{width:100%; padding:10px; margin:5px 0; border:1px solid #ccc; border-radius:5px; box-sizing:border-box;}
+    .q-card{border-bottom:1px solid #eee; padding:10px 0;}
+    .opt-btn{padding:8px; margin:2px; border:1px solid #ccc; border-radius:5px; cursor:pointer; background:white;}
     .opt-btn.selected{background:#3498db; color:white;}
     .cat-btn{padding:4px 8px; font-size:10px; border:1px solid #ddd; border-radius:4px; cursor:pointer; background:#eee;}
-    .cat-btn.active{background:#e67e22; color:white; border-color:#d35400;}
-    math-field{width:100%; border:1px solid #ccc; border-radius:6px; margin-top:5px; font-size:18px; background:white;}
-    .status-box{padding:20px; border-radius:12px; text-align:center; font-weight:bold; margin-bottom:15px;}
+    .cat-btn.active{background:#e67e22; color:white;}
+    math-field{width:100%; border:1px solid #ccc; border-radius:5px; margin-top:5px;}
   </style>
 </head>
 <body>
 <div class="container">
-  <div id="loader" style="text-align:center; padding:20px;">⌛ Yuklanmoqda...</div>
+  <div id="loader">⌛ Yuklanmoqda...</div>
 
-  <!-- ADMIN -->
+  <!-- ADMIN AREA -->
   <div id="adminArea" class="admin-card hidden">
-    <h3 style="margin:0; color:#d35400; text-align:center;">Boshqaruv Paneli</h3>
+    <h4>🛠 Boshqaruv</h4>
     <div id="testListDisplay"></div>
-    <button class="btn btn-blue" onclick="openNewForm()">➕ Yangi Test Qo'shish</button>
+    <button class="btn btn-blue" onclick="openNew()">➕ Yangi Test</button>
     <div id="adminForm" class="hidden">
-      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-        <input type="number" id="adm_n1" value="1"> <input type="number" id="adm_n2" value="1">
-        <input type="number" id="adm_n3" value="1"> <input type="number" id="adm_n4" value="1">
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:5px;">
+        <input type="number" id="adm_n1" value="1" title="A-D"> <input type="number" id="adm_n2" value="1" title="A-F">
+        <input type="number" id="adm_n3" value="1" title="a/b"> <input type="number" id="adm_n4" value="1" title="Ochiq">
       </div>
       <input type="datetime-local" id="adm_start"> <input type="datetime-local" id="adm_end">
       <input type="text" id="adm_kod" placeholder="Test kodi">
-      <button class="btn btn-orange" onclick="renderKeys()">📝 Kalitlar va Fanlar</button>
-      <div id="keyArea" class="hidden"><div id="adminQs"></div><button class="btn btn-green" id="saveBtn" onclick="saveData()">💾 Saqlash</button></div>
+      <button class="btn btn-blue" onclick="renderKeys()">📝 Javob va Fanlar</button>
+      <div id="keyArea" class="hidden"><div id="adminQs"></div><button class="btn btn-green" onclick="save()">💾 Saqlash</button></div>
     </div>
   </div>
 
-  <!-- USER -->
+  <!-- USER AREA -->
   <div id="userArea" class="hidden">
-    <div id="statusBox" class="status-box"></div>
+    <div id="statusBox" style="text-align:center; padding:10px; font-weight:bold;"></div>
     <div id="loginForm" class="hidden">
       <input type="text" id="userKod" placeholder="Test kodini kiriting">
-      <button class="btn btn-blue" onclick="accessTest()">Boshlash</button>
+      <button class="btn btn-blue" onclick="access()">Boshlash</button>
     </div>
-    <div id="testArea" class="hidden"><div id="studentQs"></div><button id="subBtn" class="btn btn-green" onclick="submitTest()">📤 Topshirish</button></div>
+    <div id="testArea" class="hidden"><div id="studentQs"></div><button id="subBtn" class="btn btn-green" onclick="submit()">📤 Topshirish</button></div>
   </div>
 </div>
 
 <script>
   const tg = window.Telegram.WebApp; tg.ready(); tg.expand();
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzG16uJeIZRvpF2iKf0hnrqoNNmW7_r-vspN2LO2qGsGf9QZN6RXC9OWmPRcdgfa3gB/exec";
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyWWAbKyu13_E39TpvtKqX89jdibyJq1d-vw_rNgj7PJF9JD_h2EA-qHiDjXdtbHYmr/exec";
   let userId = String(tg.initDataUnsafe.user?.id);
   let server = {}; let adminKeys = {}; let adminCats = {}; let studentAns = {}; let activeTest = null;
 
   async function load() {
-    try {
-      const res = await fetch(`${SCRIPT_URL}?userId=${userId}`);
-      server = await res.json();
-      document.getElementById('loader').classList.add('hidden');
-      if (server.isAdmin) { document.getElementById('adminArea').classList.remove('hidden'); showAdminList(); }
-      document.getElementById('userArea').classList.remove('hidden');
-      checkStatus();
-    } catch (e) { document.getElementById('loader').innerText = "Server xatosi!"; }
+    const res = await fetch(`${SCRIPT_URL}?userId=${userId}`);
+    server = await res.json();
+    document.getElementById('loader').classList.add('hidden');
+    if (server.isAdmin) { document.getElementById('adminArea').classList.remove('hidden'); showAdminList(); }
+    document.getElementById('userArea').classList.remove('hidden');
+    checkStatus();
   }
 
   function showAdminList() {
     const cont = document.getElementById('testListDisplay');
     cont.innerHTML = server.testList.map(t => `<div class="test-item">
-      <div style="font-size:12px;"><b>KOD: ${t.kod}</b><br>${new Date(t.start).toLocaleString()}</div>
-      <div><button onclick="calc('${t.kod}')">📊</button> <button onclick="edit('${t.kod}')">✏️</button> <button onclick="del('${t.kod}')">🗑️</button></div>
-    </div>`).join('') || "Testlar yo'q.";
+      <span><b>${t.kod}</b></span>
+      <div><button onclick="calc('${t.kod}')">📊</button><button onclick="edit('${t.kod}')">✏️</button><button onclick="del('${t.kod}')">🗑️</button></div>
+    </div>`).join('') || "Test yo'q.";
   }
 
-  async function calc(k){ if(confirm("Natijalar hisoblansinmi?")) { await fetch(SCRIPT_URL,{method:'POST', body:JSON.stringify({action:"calculate",kod:k})}); alert("Tayyor!"); } }
+  async function calc(k){ await fetch(SCRIPT_URL,{method:'POST', body:JSON.stringify({action:"calculate",kod:k})}); alert("Hisoblandi!"); }
 
-  function openNewForm() { document.getElementById('adminForm').classList.remove('hidden'); document.getElementById('adm_kod').disabled=false; adminKeys={}; adminCats={}; }
+  function openNew(){ document.getElementById('adminForm').classList.remove('hidden'); adminKeys={}; adminCats={}; }
 
   function edit(kod) {
     const t = server.testList.find(x => x.kod === kod);
     document.getElementById('adm_n1').value=t.n1; document.getElementById('adm_n2').value=t.n2;
     document.getElementById('adm_n3').value=t.n3; document.getElementById('adm_n4').value=t.n4;
     document.getElementById('adm_start').value=t.start; document.getElementById('adm_end').value=t.end;
-    document.getElementById('adm_kod').value=t.kod; document.getElementById('adm_kod').disabled=true;
-    adminKeys=t.keys; adminCats=t.cats || {}; renderKeys();
+    document.getElementById('adm_kod').value=t.kod; adminKeys=t.keys; adminCats=t.cats||{}; renderKeys();
     document.getElementById('adminForm').classList.remove('hidden');
   }
-
-  async function del(kod) { if(confirm("O'chirilsinmi?")) { await fetch(SCRIPT_URL, {method:'POST', body: JSON.stringify({action:"delete", kod: kod})}); location.reload(); } }
 
   function renderKeys() {
     document.getElementById('keyArea').classList.remove('hidden');
@@ -102,25 +96,22 @@
     genUI(document.getElementById('adminQs'), c, "admin");
   }
 
-  async function saveData() {
+  async function save() {
     const p = { action: "save", n1: +document.getElementById('adm_n1').value, n2: +document.getElementById('adm_n2').value, n3: +document.getElementById('adm_n3').value, n4: +document.getElementById('adm_n4').value, start: document.getElementById('adm_start').value, end: document.getElementById('adm_end').value, kod: document.getElementById('adm_kod').value, keys: adminKeys, cats: adminCats };
-    const r = await fetch(SCRIPT_URL, {method:'POST', body: JSON.stringify(p)});
-    const txt = await r.text();
-    if(txt==="CONFLICT") alert("Vaqt to'qnashuvi!"); else location.reload();
+    await fetch(SCRIPT_URL, {method:'POST', body: JSON.stringify(p)});
+    location.reload();
   }
 
   function checkStatus() {
     const now = new Date(); const has = server.testList.some(t => new Date(t.end) > now);
     const box = document.getElementById('statusBox');
-    box.innerHTML = has ? "✅ Faol testlar bor. Kodni kiriting." : "📭 Hozirda mavjud testlar yo'q.";
-    box.style.background = has ? "#d4edda" : "#e9ecef";
+    box.innerHTML = has ? "✅ Faol testlar bor." : "📭 Mavjud testlar yo'q.";
     if(has) document.getElementById('loginForm').classList.remove('hidden');
   }
 
-  function accessTest() {
+  function access() {
     const k = document.getElementById('userKod').value.trim(); const t = server.testList.find(x => x.kod === k);
-    if(!t) return alert("Xato kod!"); if(server.submittedTests.includes(k)) return alert("Topshirilgan!");
-    if(new Date() < new Date(t.start)) return alert("Hali vaqt bor");
+    if(!t) return alert("Xato!");
     activeTest = t; document.getElementById('loginForm').classList.add('hidden');
     document.getElementById('testArea').classList.remove('hidden'); genUI(document.getElementById('studentQs'), t, "user");
   }
@@ -136,24 +127,24 @@
   function addM(p, n, os, m) {
     const d = document.createElement('div'); d.className = 'q-card';
     const ks = (m==='admin')?adminKeys:studentAns;
-    let catH = m==='admin' ? `<div style="margin-bottom:5px"><button class="cat-btn ${adminCats[n]==='alg'?'active':''}" onclick="setCat(${n},'alg',this)">Alg</button> <button class="cat-btn ${adminCats[n]==='geo'?'active':''}" onclick="setCat(${n},'geo',this)">Geo</button></div>` : "";
-    d.innerHTML = `${catH} <b>${n}.</b> <span id="${m}-g-${n}">${os.map(o => `<button class="opt-btn ${ks[n]===o?'selected':''}" onclick="sel(${n},'${o}','${m}',this)">${o}</button>`).join('')}</span>`;
+    let cat = m==='admin' ? `<div><button class="cat-btn ${adminCats[n]==='alg'?'active':''}" onclick="setCat(${n},'alg',this)">Alg</button><button class="cat-btn ${adminCats[n]==='geo'?'active':''}" onclick="setCat(${n},'geo',this)">Geo</button></div>` : "";
+    d.innerHTML = `${cat} <b>${n}.</b> <span>${os.map(o => `<button class="opt-btn ${ks[n]===o?'selected':''}" onclick="sel(${n},'${o}','${m}',this)">${o}</button>`).join('')}</span>`;
     p.appendChild(d);
   }
 
   function addD(p, n, m) {
     const d = document.createElement('div'); d.className = 'q-card';
     const v = (m==='admin')? (adminKeys[n]||{a:'',b:''}):{a:'',b:''};
-    let catH = m==='admin' ? `<div style="margin-bottom:5px"><button class="cat-btn ${adminCats[n]==='alg'?'active':''}" onclick="setCat(${n},'alg',this)">Alg</button> <button class="cat-btn ${adminCats[n]==='geo'?'active':''}" onclick="setCat(${n},'geo',this)">Geo</button></div>` : "";
-    d.innerHTML = `${catH} <b>${n}.</b> a)<math-field value="${v.a}" oninput="upD(${n},'a','${m}',this)"></math-field> b)<math-field value="${v.b}" oninput="upD(${n},'b','${m}',this)"></math-field>`;
+    let cat = m==='admin' ? `<div><button class="cat-btn ${adminCats[n]==='alg'?'active':''}" onclick="setCat(${n},'alg',this)">Alg</button><button class="cat-btn ${adminCats[n]==='geo'?'active':''}" onclick="setCat(${n},'geo',this)">Geo</button></div>` : "";
+    d.innerHTML = `${cat} <b>${n}.</b> a)<math-field value="${v.a}" oninput="upD(${n},'a','${m}',this)"></math-field> b)<math-field value="${v.b}" oninput="upD(${n},'b','${m}',this)"></math-field>`;
     p.appendChild(d);
   }
 
   function addS(p, n, m) {
     const d = document.createElement('div'); d.className = 'q-card';
     const v = (m==='admin')? (adminKeys[n]||''):'';
-    let catH = m==='admin' ? `<div style="margin-bottom:5px"><button class="cat-btn ${adminCats[n]==='alg'?'active':''}" onclick="setCat(${n},'alg',this)">Alg</button> <button class="cat-btn ${adminCats[n]==='geo'?'active':''}" onclick="setCat(${n},'geo',this)">Geo</button></div>` : "";
-    d.innerHTML = `${catH} <b>${n}.</b> <math-field value="${v}" oninput="upS(${n},'${m}',this)"></math-field>`;
+    let cat = m==='admin' ? `<div><button class="cat-btn ${adminCats[n]==='alg'?'active':''}" onclick="setCat(${n},'alg',this)">Alg</button><button class="cat-btn ${adminCats[n]==='geo'?'active':''}" onclick="setCat(${n},'geo',this)">Geo</button></div>` : "";
+    d.innerHTML = `${cat} <b>${n}.</b> <math-field value="${v}" oninput="upS(${n},'${m}',this)"></math-field>`;
     p.appendChild(d);
   }
 
@@ -162,8 +153,7 @@
   function upD(n,p,m,el){ let o=(m==='admin'?adminKeys:studentAns); if(!o[n])o[n]={a:'',b:''}; o[n][p]=el.value; }
   function upS(n,m,el){ (m==='admin'?adminKeys:studentAns)[n]=el.value; }
 
-  async function submitTest() {
-    if(!confirm("Yuborilsinmi?")) return;
+  async function submit() {
     document.getElementById('subBtn').disabled=true;
     await fetch(SCRIPT_URL, {method:'POST', body: JSON.stringify({action:"submit", userId:userId, kod: activeTest.kod, answers:studentAns})});
     tg.close();
