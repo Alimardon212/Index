@@ -1,51 +1,61 @@
-<!-- Buni GitHub Pages yoki Vercel-ga yuklang -->
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rash Test Pro</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/mathlive"></script>
   <style>
-    body{font-family:sans-serif; background:#f4f7f9; padding:10px;}
+    body{font-family:'Segoe UI',sans-serif; background:#f4f7f9; padding:10px; margin:0;}
     .container{max-width:550px; margin:auto; background:white; padding:15px; border-radius:15px; box-shadow:0 2px 10px rgba(0,0,0,0.1);}
     .hidden{display:none;}
-    .admin-card{background:#fff4e5; border:1px solid #f39c12; padding:10px; border-radius:10px; margin-bottom:15px;}
-    .test-item{background:white; padding:8px; border-radius:5px; margin-top:5px; border-left:4px solid #f39c12; display:flex; justify-content:space-between; align-items:center;}
-    .btn{width:100%; padding:12px; border:none; border-radius:8px; color:white; cursor:pointer; font-weight:bold; margin-top:10px;}
-    .btn-blue{background:#3498db;} .btn-green{background:#2ecc71;}
-    input{width:100%; padding:10px; margin:5px 0; border:1px solid #ccc; border-radius:5px; box-sizing:border-box;}
-    .q-card{border-bottom:1px solid #eee; padding:10px 0;}
-    .opt-btn{padding:8px; margin:2px; border:1px solid #ccc; border-radius:5px; cursor:pointer; background:white;}
+    /* Admin Panel */
+    .admin-card{background:#fff4e5; border:1px solid #f39c12; padding:15px; border-radius:12px; margin-bottom:15px;}
+    .q-type-grid {display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;}
+    .q-type-item {display: flex; flex-direction: column;}
+    .q-type-item label {font-size: 11px; font-weight: bold; color: #d35400; margin-bottom: 3px;}
+    .test-item{background:white; padding:10px; border-radius:8px; margin-top:8px; border-left:5px solid #f39c12; display:flex; justify-content:space-between; align-items:center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);}
+    /* Buttons */
+    .btn{width:100%; padding:14px; border:none; border-radius:10px; color:white; font-size:15px; font-weight:bold; cursor:pointer; margin-top:10px;}
+    .btn-blue{background:#3498db;} .btn-green{background:#2ecc71;} .btn-orange{background:#f39c12;}
+    input{width:100%; padding:10px; margin:5px 0; border:1px solid #ccc; border-radius:8px; box-sizing:border-box;}
+    /* Question Cards */
+    .q-card{border-bottom:1px solid #eee; padding:15px 0;}
+    .opt-btn{padding:8px 12px; margin:2px; border:1px solid #ccc; border-radius:6px; cursor:pointer; background:white; font-weight:bold;}
     .opt-btn.selected{background:#3498db; color:white;}
     .cat-btn{padding:4px 8px; font-size:10px; border:1px solid #ddd; border-radius:4px; cursor:pointer; background:#eee;}
-    .cat-btn.active{background:#e67e22; color:white;}
-    math-field{width:100%; border:1px solid #ccc; border-radius:5px; margin-top:5px;}
+    .cat-btn.active{background:#e67e22; color:white; border-color:#d35400;}
+    math-field{width:100%; border:1px solid #ccc; border-radius:6px; margin-top:5px; font-size:18px; background:white;}
+    .status-box{padding:20px; border-radius:12px; text-align:center; font-weight:bold; margin-bottom:15px;}
   </style>
 </head>
 <body>
 <div class="container">
-  <div id="loader">⌛ Yuklanmoqda...</div>
+  <div id="loader" style="text-align:center; padding:20px;">⌛ Yuklanmoqda...</div>
 
-  <!-- ADMIN AREA -->
+  <!-- ADMIN -->
   <div id="adminArea" class="admin-card hidden">
-    <h4>🛠 Boshqaruv</h4>
+    <h3 style="margin:0 0 10px; color:#d35400; text-align:center;">🛠 Boshqaruv</h3>
     <div id="testListDisplay"></div>
-    <button class="btn btn-blue" onclick="openNew()">➕ Yangi Test</button>
+    <button class="btn btn-blue" onclick="openNew()">➕ Yangi Test Qo'shish</button>
     <div id="adminForm" class="hidden">
-      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:5px;">
-        <input type="number" id="adm_n1" value="1" title="A-D"> <input type="number" id="adm_n2" value="1" title="A-F">
-        <input type="number" id="adm_n3" value="1" title="a/b"> <input type="number" id="adm_n4" value="1" title="Ochiq">
+      <div class="q-type-grid">
+        <div class="q-type-item"><label>Yopiq (A-D):</label><input type="number" id="adm_n1" value="1"></div>
+        <div class="q-type-item"><label>Matching (A-F):</label><input type="number" id="adm_n2" value="1"></div>
+        <div class="q-type-item"><label>Ochiq (a/b):</label><input type="number" id="adm_n3" value="1"></div>
+        <div class="q-type-item"><label>Ochiq (Single):</label><input type="number" id="adm_n4" value="1"></div>
       </div>
+      <label style="font-size:11px; font-weight:bold;">Boshlanish va Tugash vaqti:</label>
       <input type="datetime-local" id="adm_start"> <input type="datetime-local" id="adm_end">
       <input type="text" id="adm_kod" placeholder="Test kodi">
-      <button class="btn btn-blue" onclick="renderKeys()">📝 Javob va Fanlar</button>
-      <div id="keyArea" class="hidden"><div id="adminQs"></div><button class="btn btn-green" onclick="save()">💾 Saqlash</button></div>
+      <button class="btn btn-orange" onclick="renderKeys()">📝 Kalitlar va Fanlar</button>
+      <div id="keyArea" class="hidden"><div id="adminQs"></div><button class="btn btn-green" onclick="save()">💾 Testni saqlash</button></div>
     </div>
   </div>
 
-  <!-- USER AREA -->
+  <!-- USER -->
   <div id="userArea" class="hidden">
-    <div id="statusBox" style="text-align:center; padding:10px; font-weight:bold;"></div>
+    <div id="statusBox" class="status-box"></div>
     <div id="loginForm" class="hidden">
       <input type="text" id="userKod" placeholder="Test kodini kiriting">
       <button class="btn btn-blue" onclick="access()">Boshlash</button>
@@ -56,37 +66,38 @@
 
 <script>
   const tg = window.Telegram.WebApp; tg.ready(); tg.expand();
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyWWAbKyu13_E39TpvtKqX89jdibyJq1d-vw_rNgj7PJF9JD_h2EA-qHiDjXdtbHYmr/exec";
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwxglNqMUhFmlTHMIM1Yvy2I3HqXKGR9T5BmDdXFmTbg23vMNMGNUxxKDQwj5OQtWc9/exec";
   let userId = String(tg.initDataUnsafe.user?.id);
   let server = {}; let adminKeys = {}; let adminCats = {}; let studentAns = {}; let activeTest = null;
 
   async function load() {
-    const res = await fetch(`${SCRIPT_URL}?userId=${userId}`);
-    server = await res.json();
-    document.getElementById('loader').classList.add('hidden');
-    if (server.isAdmin) { document.getElementById('adminArea').classList.remove('hidden'); showAdminList(); }
-    document.getElementById('userArea').classList.remove('hidden');
-    checkStatus();
+    try {
+      const res = await fetch(`${SCRIPT_URL}?userId=${userId}`);
+      server = await res.json();
+      document.getElementById('loader').classList.add('hidden');
+      if (server.isAdmin) { document.getElementById('adminArea').classList.remove('hidden'); showAdminList(); }
+      document.getElementById('userArea').classList.remove('hidden');
+      checkStatus();
+    } catch (e) { document.getElementById('loader').innerText = "Server xatosi!"; }
   }
 
   function showAdminList() {
     const cont = document.getElementById('testListDisplay');
     cont.innerHTML = server.testList.map(t => `<div class="test-item">
-      <span><b>${t.kod}</b></span>
+      <span><b>KOD: ${t.kod}</b></span>
       <div><button onclick="calc('${t.kod}')">📊</button><button onclick="edit('${t.kod}')">✏️</button><button onclick="del('${t.kod}')">🗑️</button></div>
     </div>`).join('') || "Test yo'q.";
   }
 
-  async function calc(k){ await fetch(SCRIPT_URL,{method:'POST', body:JSON.stringify({action:"calculate",kod:k})}); alert("Hisoblandi!"); }
-
-  function openNew(){ document.getElementById('adminForm').classList.remove('hidden'); adminKeys={}; adminCats={}; }
-
+  async function calc(k){ if(confirm("Natijalar hisoblansinmi?")) { await fetch(SCRIPT_URL,{method:'POST', body:JSON.stringify({action:"calculate",kod:k})}); alert("Tayyor!"); } }
+  function openNew(){ document.getElementById('adminForm').classList.remove('hidden'); document.getElementById('adm_kod').disabled=false; adminKeys={}; adminCats={}; }
   function edit(kod) {
     const t = server.testList.find(x => x.kod === kod);
     document.getElementById('adm_n1').value=t.n1; document.getElementById('adm_n2').value=t.n2;
     document.getElementById('adm_n3').value=t.n3; document.getElementById('adm_n4').value=t.n4;
     document.getElementById('adm_start').value=t.start; document.getElementById('adm_end').value=t.end;
-    document.getElementById('adm_kod').value=t.kod; adminKeys=t.keys; adminCats=t.cats||{}; renderKeys();
+    document.getElementById('adm_kod').value=t.kod; document.getElementById('adm_kod').disabled=true;
+    adminKeys=t.keys; adminCats=t.cats||{}; renderKeys();
     document.getElementById('adminForm').classList.remove('hidden');
   }
 
@@ -105,13 +116,14 @@
   function checkStatus() {
     const now = new Date(); const has = server.testList.some(t => new Date(t.end) > now);
     const box = document.getElementById('statusBox');
-    box.innerHTML = has ? "✅ Faol testlar bor." : "📭 Mavjud testlar yo'q.";
+    box.innerHTML = has ? "✅ Faol testlar bor. Kodni kiriting." : "📭 Hozirda mavjud testlar yo'q.";
+    box.style.background = has ? "#d4edda" : "#e9ecef";
     if(has) document.getElementById('loginForm').classList.remove('hidden');
   }
 
   function access() {
     const k = document.getElementById('userKod').value.trim(); const t = server.testList.find(x => x.kod === k);
-    if(!t) return alert("Xato!");
+    if(!t) return alert("Xato kod!"); if(server.submittedTests.includes(k)) return alert("Topshirilgan!");
     activeTest = t; document.getElementById('loginForm').classList.add('hidden');
     document.getElementById('testArea').classList.remove('hidden'); genUI(document.getElementById('studentQs'), t, "user");
   }
