@@ -166,11 +166,60 @@
     d.innerHTML = h; p.appendChild(d);
   }
 
-  async function saveData() {
-    const p = { action: "save", n1: +document.getElementById('adm_n1').value, n2: +document.getElementById('adm_n2').value, n3: +document.getElementById('adm_n3').value, n4: +document.getElementById('adm_n4').value, start: document.getElementById('adm_start').value, end: document.getElementById('adm_end').value, kod: document.getElementById('adm_kod').value, keys: adminKeys, cats: adminCats };
-    await fetch(SCRIPT_URL, {method:'POST', body: JSON.stringify(p)});
-    location.reload();
-  }
+ async function saveData() {
+    const saveBtn = document.getElementById('saveBtn');
+    try {
+        const n1 = parseInt(document.getElementById('adm_n1').value) || 0;
+        const n2 = parseInt(document.getElementById('adm_n2').value) || 0;
+        const n3 = parseInt(document.getElementById('adm_n3').value) || 0;
+        const n4 = parseInt(document.getElementById('adm_n4').value) || 0;
+        const total = n1 + n2 + n3 + n4;
+        const kod = document.getElementById('adm_kod').value.trim();
+
+        if (!kod) { alert("⚠️ Test kodini kiriting!"); return; }
+        if (total === 0) { alert("⚠️ Savollar sonini kiriting!"); return; }
+
+        // Har bir savol uchun fan tanlanganini tekshirish (Default: alg)
+        for (let i = 1; i <= total; i++) {
+            if (!adminCats[i]) adminCats[i] = 'alg'; 
+        }
+
+        saveBtn.disabled = true;
+        saveBtn.innerText = "⏳ Saqlanmoqda...";
+
+        const payload = {
+            action: "save",
+            n1: n1, n2: n2, n3: n3, n4: n4,
+            start: document.getElementById('adm_start').value,
+            end: document.getElementById('adm_end').value,
+            kod: kod,
+            keys: adminKeys,
+            cats: adminCats
+        };
+
+        console.log("Yuborilayotgan ma'lumot:", payload);
+
+        const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify(payload)
+        });
+
+        const result = await response.text();
+
+        if (result === "CONFLICT") {
+            alert("❌ Bu vaqt oralig'ida boshqa test bor!");
+            saveBtn.disabled = false;
+            saveBtn.innerText = "💾 Barchasini Saqlash";
+        } else {
+            alert("✅ Muvaffaqiyatli saqlandi!");
+            location.reload();
+        }
+    } catch (error) {
+        alert("❌ Xatolik yuz berdi: " + error.message);
+        saveBtn.disabled = false;
+        saveBtn.innerText = "💾 Barchasini Saqlash";
+    }
+}
 
   function accessTest() {
     const k = document.getElementById('userKod').value.trim();
@@ -204,6 +253,7 @@
 </script>
 </body>
 </html>
+
 
 
 
