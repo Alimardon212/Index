@@ -222,21 +222,68 @@
 }
 
   function accessTest() {
-    const k = document.getElementById('userKod').value.trim();
-    const t = serverData.testList.find(x => String(x.kod).toLowerCase() === String(k).toLowerCase());
-    if(!t) return alert("Kod xato!");
-    if(serverData.submittedTests.includes(k)) return alert("Siz topshirgansiz!");
-    if(new Date() < new Date(t.start)) return alert("Test hali boshlanmadi!");
-    activeTest = t; document.getElementById('loginForm').classList.add('hidden');
-    document.getElementById('testArea').classList.remove('hidden');
-    const cont = document.getElementById('studentQuestions'); cont.innerHTML = "";
-    let q = 1;
-    for(let i=0; i<t.n1; i++) addQ(cont, q++, ['A','B','C','D'], "user", "mcq");
-    for(let i=0; i<t.n2; i++) addQ(cont, q++, ['A','B','C','D','E','F'], "user", "mcq");
-    for(let i=0; i<t.n3; i++) addQ(cont, q++, null, "user", "double");
-    for(let i=0; i<t.n4; i++) addQ(cont, q++, null, "user", "single");
-  }
+    const inputField = document.getElementById('userKod');
+    const userKodInput = inputField.value.trim().toUpperCase(); // Hammasini KATTA harf qilamiz
+    
+    console.log("Kiritilgan kod:", userKodInput);
+    console.log("Bazadagi testlar soni:", serverData.testList.length);
 
+    // 1. Testni qidirish
+    const test = serverData.testList.find(x => 
+        String(x.kod).trim().toUpperCase() === userKodInput
+    );
+
+    if (!test) {
+        alert("❌ Xatolik: Bunday kodli test topilmadi!\n\nEslatma: Kodni to'g'ri yozganingizga ishonch hosil qiling.");
+        return;
+    }
+
+    const now = new Date();
+    const startTime = new Date(test.start);
+    const endTime = new Date(test.end);
+
+    // 2. Vaqtni tekshirish
+    if (now < startTime) {
+        alert("⏳ Ushbu test hali boshlanmadi!\n\nBoshlanish vaqti: " + startTime.toLocaleString('uz-UZ'));
+        return;
+    }
+
+    if (now > endTime) {
+        alert("❌ Kechirasiz, ushbu testning muddati tugagan!");
+        location.reload(); // Sahifani yangilab, statusni o'zgartiramiz
+        return;
+    }
+
+    // 3. Avval topshirganini tekshirish
+    const hasSubmitted = serverData.submittedTests.some(k => 
+        String(k).trim().toUpperCase() === userKodInput
+    );
+
+    if (hasSubmitted) {
+        alert("🚫 Siz ushbu testni topshirib bo'lgansiz! Natijani kuting.");
+        return;
+    }
+
+    // 4. HAMMASI TO'G'RI - TESTNI OCHISH
+    activeTest = test;
+    
+    // UI elementlarini yashirish/ko'rsatish
+    document.getElementById('loginForm').classList.add('hidden');
+    document.getElementById('statusBox').classList.add('hidden');
+    // Agar admin bo'lsa admin panelni ham yashiramiz
+    const adminArea = document.getElementById('adminArea');
+    if (adminArea) adminArea.classList.add('hidden');
+    
+    document.getElementById('testArea').classList.remove('hidden');
+    
+    // Savollarni generatsiya qilish
+    const container = document.getElementById('studentQuestions');
+    container.innerHTML = ""; // Tozalash
+    generateUI(container, test, "user");
+    
+    // Sahifani tepaga qaytarish
+    window.scrollTo(0, 0);
+}
   async function submitTest() {
     document.getElementById('subBtn').disabled=true;
     await fetch(SCRIPT_URL, {method:'POST', body: JSON.stringify({action:"submit", userId:userId, kod: activeTest.kod, answers:studentAns})});
@@ -253,6 +300,7 @@
 </script>
 </body>
 </html>
+
 
 
 
