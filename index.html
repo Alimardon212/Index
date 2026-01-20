@@ -2,35 +2,35 @@
 <html lang="uz">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Rash Pro Test System</title>
+  <title>Repetitsion Test System</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/mathlive"></script>
   <style>
-    body{font-family:'Segoe UI', system-ui, sans-serif; background:#f4f7f9; padding:10px; margin:0;}
+    body{font-family:'Segoe UI', system-ui, sans-serif; background:#f4f7f9; padding:10px; margin:0; color:#333;}
     .container{max-width:550px; margin:auto; background:white; padding:15px; border-radius:15px; box-shadow:0 2px 10px rgba(0,0,0,0.1);}
     .hidden{display:none;}
     .admin-card{background:#fff4e5; border:1px solid #f39c12; padding:10px; border-radius:10px; margin-bottom:15px;}
-    .test-item{background:white; padding:10px; border-radius:8px; margin-top:8px; border-left:4px solid #f39c12; display:flex; justify-content:space-between; align-items:center; box-shadow:0 2px 5px rgba(0,0,0,0.05);}
-    .btn{width:100%; padding:14px; border:none; border-radius:10px; color:white; font-size:15px; font-weight:bold; cursor:pointer; margin-top:10px; transition: 0.2s;}
-    .btn-blue{background:#3498db;} .btn-green{background:#2ecc71;} .btn-orange{background:#f39c12;} .btn-red{background:#e74c3c;}
-    input{width:100%; padding:10px; margin:5px 0 8px; border:1px solid #ccc; border-radius:8px; box-sizing:border-box; font-size:16px;}
-    .q-card{border-bottom: 1px solid #eee; padding:15px 0;}
-    .opt-btn{padding:10px 14px; margin:2px; border:1px solid #ccc; border-radius:6px; cursor:pointer; background:white; font-weight:bold;}
+    .test-item{background:white; padding:8px; border-radius:5px; margin-top:5px; border-left:4px solid #f39c12; display:flex; justify-content:space-between; align-items:center;}
+    .btn{width:100%; padding:14px; border:none; border-radius:10px; color:white; font-size:15px; font-weight:bold; cursor:pointer; margin-top:10px;}
+    .btn-blue{background:#3498db;} .btn-green{background:#2ecc71;} .btn-orange{background:#f39c12;}
+    input{width:100%; padding:10px; margin:5px 0 8px; border:1px solid #ccc; border-radius:8px; box-sizing:border-box;}
+    .q-card{border-bottom:1px solid #eee; padding:15px 0;}
+    .opt-btn{padding:8px 12px; margin:2px; border:1px solid #ccc; border-radius:6px; cursor:pointer; background:white;}
     .opt-btn.selected{background:#3498db; color:white;}
     .cat-btn{padding:5px 12px; font-size:11px; border:1px solid #ddd; border-radius:6px; cursor:pointer; background:#fff; font-weight: bold;}
-    .cat-btn.active{background:#e67e22; color:white; border-color:#d35400;}
+    .cat-btn.active{background:#e67e22; color:white;}
     math-field{width:100%; border:1px solid #ccc; border-radius:8px; margin-top:5px; font-size:20px; background:white; min-height: 45px;}
     .status-box{padding:20px; border-radius:12px; text-align:center; font-weight:bold; margin-bottom:15px; line-height: 1.4;}
-    #loader {text-align: center; padding: 20px;}
+    #errorLog { color: red; font-size: 12px; text-align: center; margin-top: 20px; }
   </style>
 </head>
 <body>
 <div class="container">
-  <div id="loader">⌛ Yuklanmoqda...</div>
+  <div id="loader" style="text-align: center; padding: 20px;">⌛ Yuklanmoqda...</div>
+  <div id="errorLog"></div>
 
   <!-- ADMIN -->
   <div id="adminArea" class="admin-card hidden">
-    <h3 style="margin:0; color:#d35400; text-align:center;">🛠 Admin Panel</h3>
     <div id="testListDisplay"></div>
     <button class="btn btn-blue" onclick="openNewForm()">➕ Yangi Test</button>
     <div id="adminForm" class="hidden">
@@ -50,14 +50,14 @@
   <!-- USER -->
   <div id="userArea" class="hidden">
     <div id="statusBox" class="status-box"></div>
-    <div id="paymentArea" class="hidden" style="text-align: center; background: #fff4f4; padding: 15px; border-radius: 10px; border: 1px dashed red;">
-        <h4 style="color: red;">💳 Test pullik!</h4>
-        <p style="font-size: 13px;">Guruhda yo'qsiz. To'lov uchun adminga murojaat qiling.</p>
-        <button class="btn btn-orange" id="joinBtn">Kanalga kirish</button>
+    <div id="paymentArea" class="hidden" style="text-align: center; border: 1px dashed red; padding: 10px; background: #fff5f5;">
+      <h4 style="color:red;">💳 Test pullik!</h4>
+      <p>Karta: 8600 0000 0000 0000</p>
+      <button class="btn btn-orange" id="joinBtn">Kanalga kirish so'rovi</button>
     </div>
     <div id="loginForm" class="hidden">
       <input type="text" id="userKod" placeholder="Test kodini kiriting">
-      <button class="btn btn-blue" onclick="accessTest()">Testni boshlash</button>
+      <button class="btn btn-blue" onclick="accessTest()">Boshlash</button>
     </div>
     <div id="testArea" class="hidden"><div id="studentQuestions"></div><button id="subBtn" class="btn btn-green" onclick="submitTest()">📤 Topshirish</button></div>
   </div>
@@ -67,54 +67,50 @@
 
 <script>
   const tg = window.Telegram.WebApp; tg.ready(); tg.expand();
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxA4q_g3CfsknQC64H6g3Xh7rXtMNWppBVAm1Y0I4W6tQ6_EccI_1e7nBoogv0cGqfp/exec"; 
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwW33x9FaPOwaYzpCgmjqLfLeHv0jHORsADR3_K8huxu3d2MHTC0bqn7Nchk16_80IU/exec"; 
   let userId = String(tg.initDataUnsafe.user?.id || "");
   let serverData = { testList: [], isAdmin: false, submittedTests: [] };
   let adminKeys = {}, adminCats = {}, studentAns = {}, activeTest = null;
 
   async function load() {
+    if (!userId) { document.getElementById('loader').innerText = "Telegram orqali oching!"; return; }
     try {
       const res = await fetch(`${SCRIPT_URL}?userId=${userId}`);
+      if (!res.ok) throw new Error("Serverdan noto'g'ri javob keldi (404/500)");
       serverData = await res.json();
       
       if (serverData.error) {
-        document.getElementById('loader').innerText = "Google Script xatosi: " + serverData.error;
+        document.getElementById('errorLog').innerText = "Script xatosi: " + serverData.error;
         return;
       }
 
       document.getElementById('loader').classList.add('hidden');
-      if (serverData.isAdmin) { 
-        document.getElementById('adminArea').classList.remove('hidden'); 
-        displayAdminTests(); 
-      }
+      if (serverData.isAdmin) { document.getElementById('adminArea').classList.remove('hidden'); displayAdminTests(); }
       document.getElementById('userArea').classList.remove('hidden');
-      checkGlobalStatus();
+      checkStatus();
     } catch (e) { 
-      document.getElementById('loader').innerText = "Tarmoq xatosi! Bog'lanib bo'lmadi."; 
+      document.getElementById('loader').innerText = "Xato!";
+      document.getElementById('errorLog').innerText = e.message;
     }
   }
 
   function displayAdminTests() {
     const cont = document.getElementById('testListDisplay');
     cont.innerHTML = serverData.testList.map(t => `<div class="test-item">
-      <div class="test-info"><b>${t.kod}</b><br><small>${t.channelId ? '💰 Pullik' : '🆓 Bepul'}</small></div>
-      <div style="display:flex;">
-        <button onclick="calculateRash('${t.kod}')">📊</button><button onclick="editTest('${t.kod}')">✏️</button><button onclick="deleteTest('${t.kod}')">🗑️</button>
-      </div>
+      <span><b>${t.kod}</b></span>
+      <div><button onclick="calcRash('${t.kod}')">📊</button><button onclick="editTest('${t.kod}')">✏️</button><button onclick="deleteTest('${t.kod}')">🗑️</button></div>
     </div>`).join('') || "Testlar yo'q.";
   }
 
-  function checkGlobalStatus() {
+  function checkStatus() {
     const now = new Date();
     const active = serverData.testList.filter(t => new Date(t.start) <= now && new Date(t.end) > now);
     const box = document.getElementById('statusBox');
     if (active.length > 0) { 
-      box.innerHTML = "✅ Test faol! Kodni kiriting."; 
-      box.style.background = "#d4edda"; 
+      box.innerHTML = "✅ Test faol! Kodni kiriting."; box.style.background = "#d4edda";
       document.getElementById('loginForm').classList.remove('hidden'); 
     } else { 
-      box.innerHTML = "📭 Mavjud testlar yo'q."; 
-      box.style.background = "#e9ecef"; 
+      box.innerHTML = "📭 Hozirda mavjud testlar yo'q."; box.style.background = "#e9ecef"; 
       document.getElementById('loginForm').classList.add('hidden');
     }
   }
@@ -123,42 +119,44 @@
     const k = document.getElementById('userKod').value.trim();
     const t = serverData.testList.find(x => x.kod.toLowerCase() === k.toLowerCase());
     if(!t) return alert("Kod xato!");
-    if(serverData.submittedTests.includes(k)) return alert("Topshirib bo'lingan!");
+    if(serverData.submittedTests.includes(k)) return alert("Topshirilgan!");
 
     document.getElementById('loader').classList.remove('hidden');
-    const res = await fetch(`${SCRIPT_URL}?action=checkMembership&userId=${userId}&testKod=${k}`);
-    const check = await res.json();
-    document.getElementById('loader').classList.add('hidden');
+    try {
+        const res = await fetch(`${SCRIPT_URL}?action=checkMembership&userId=${userId}&testKod=${k}`);
+        const check = await res.json();
+        document.getElementById('loader').classList.add('hidden');
 
-    if (check.status !== "member") {
+        if (check.status !== "member") {
+            document.getElementById('paymentArea').classList.remove('hidden');
+            document.getElementById('loginForm').classList.add('hidden');
+            document.getElementById('joinBtn').onclick = () => tg.openTelegramLink(t.channelLink);
+            return;
+        }
+
+        activeTest = t;
         document.getElementById('loginForm').classList.add('hidden');
-        document.getElementById('paymentArea').classList.remove('hidden');
-        document.getElementById('joinBtn').onclick = () => tg.openTelegramLink(t.channelLink);
-        return;
-    }
-
-    activeTest = t;
-    document.getElementById('loginForm').classList.add('hidden');
-    document.getElementById('testArea').classList.remove('hidden');
-    const cont = document.getElementById('studentQuestions'); cont.innerHTML = "";
-    let q = 1;
-    for(let i=0; i<parseInt(t.n1); i++) createQ(cont, q++, ['A','B','C','D'], "user", "mcq");
-    for(let i=0; i<parseInt(t.n2); i++) createQ(cont, q++, ['A','B','C','D','E','F'], "user", "mcq");
-    for(let i=0; i<parseInt(t.n3); i++) createQ(cont, q++, null, "user", "double");
-    for(let i=0; i<parseInt(t.n4); i++) createQ(cont, q++, null, "user", "single");
+        document.getElementById('testArea').classList.remove('hidden');
+        const cont = document.getElementById('studentQuestions'); cont.innerHTML = "";
+        let q = 1;
+        for(let i=0; i<parseInt(t.n1); i++) createQ(cont, q++, ['A','B','C','D'], "user", "mcq");
+        for(let i=0; i<parseInt(t.n2); i++) createQ(cont, q++, ['A','B','C','D','E','F'], "user", "mcq");
+        for(let i=0; i<parseInt(t.n3); i++) createQ(cont, q++, null, "user", "double");
+        for(let i=0; i<parseInt(t.n4); i++) createQ(cont, q++, null, "user", "single");
+        window.scrollTo(0,0);
+    } catch(e) { alert("Xato: " + e.message); }
   }
 
   function createQ(p, n, opts, mode, type) {
     const d = document.createElement('div'); d.className = 'q-card';
     const obj = (mode === 'admin') ? adminKeys : studentAns;
     if (mode === 'admin' && !adminCats[n]) adminCats[n] = 'alg';
-    
     if (mode === 'admin') {
-      let catDiv = document.createElement('div');
-      catDiv.innerHTML = `<button class="cat-btn ${adminCats[n]==='alg'?'active':''}" onclick="adminCats[${n}]='alg'; this.parentElement.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('active')); this.classList.add('active')">Alg</button><button class="cat-btn ${adminCats[n]==='geo'?'active':''}" onclick="adminCats[${n}]='geo'; this.parentElement.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('active')); this.classList.add('active')">Geo</button>`;
-      d.appendChild(catDiv);
+      let cd = document.createElement('div'); cd.style.marginBottom="5px";
+      cd.innerHTML = `<button class="cat-btn ${adminCats[n]==='alg'?'active':''}" onclick="adminCats[${n}]='alg'; this.parentElement.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('active')); this.classList.add('active')">Alg</button><button class="cat-btn ${adminCats[n]==='geo'?'active':''}" onclick="adminCats[${n}]='geo'; this.parentElement.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('active')); this.classList.add('active')">Geo</button>`;
+      d.appendChild(cd);
     }
-    let title = document.createElement('b'); title.innerText = n + ". "; d.appendChild(title);
+    let t = document.createElement('b'); t.innerText = n + ". "; d.appendChild(t);
     if (type === "mcq") {
       let s = document.createElement('span');
       opts.forEach(o => {
@@ -169,18 +167,50 @@
       d.appendChild(s);
     } else if (type === "double") {
       const v = (mode==='admin' && adminKeys[n]) ? adminKeys[n] : {a:'', b:''};
-      let div = document.createElement('div'); div.innerHTML = `a)<math-field id="q${n}a" value="${v.a||''}"></math-field> b)<math-field id="q${n}b" value="${v.b||''}"></math-field>`;
+      let div = document.createElement('div'); div.innerHTML = `a)<math-field id="q${n}a" value="${v.a}"></math-field> b)<math-field id="q${n}b" value="${v.b}"></math-field>`;
       d.appendChild(div);
       setTimeout(() => {
-        document.getElementById(`q${n}a`).addEventListener('input', (e) => { if(!obj[n]) obj[n]={a:'',b:''}; obj[n].a = e.target.value; });
-        document.getElementById(`q${n}b`).addEventListener('input', (e) => { if(!obj[n]) obj[n]={a:'',b:''}; obj[n].b = e.target.value; });
+        document.getElementById(`q${n}a`).addEventListener('input', (e) => { if(!obj[n])obj[n]={a:'',b:''}; obj[n].a=e.target.value; });
+        document.getElementById(`q${n}b`).addEventListener('input', (e) => { if(!obj[n])obj[n]={a:'',b:''}; obj[n].b=e.target.value; });
       }, 0);
     } else {
       const v = (mode==='admin') ? (adminKeys[n]||'') : '';
-      let mf = document.createElement('math-field'); mf.value = v; mf.addEventListener('input', (e) => { obj[n] = e.target.value; });
+      let mf = document.createElement('math-field'); mf.value = v; mf.addEventListener('input', (e) => { obj[n]=e.target.value; });
       d.appendChild(mf);
     }
     p.appendChild(d);
   }
 
-  function openNewForm() { docu
+  function openNewForm() { document.getElementById('adminForm').classList.remove('hidden'); adminKeys={}; adminCats={}; }
+  function renderAdminKeys() {
+    const n1=+document.getElementById('adm_n1').value, n2=+document.getElementById('adm_n2').value, n3=+document.getElementById('adm_n3').value, n4=+document.getElementById('adm_n4').value;
+    if(n1+n2+n3+n4===0) return alert("Soni?");
+    document.getElementById('keyArea').classList.remove('hidden');
+    const c = document.getElementById('adminQuestions'); c.innerHTML="";
+    let q=1;
+    for(let i=0; i<n1; i++) createQ(c, q++, ['A','B','C','D'], "admin", "mcq");
+    for(let i=0; i<n2; i++) createQ(c, q++, ['A','B','C','D','E','F'], "admin", "mcq");
+    for(let i=0; i<n3; i++) createQ(c, q++, null, "admin", "double");
+    for(let i=0; i<n4; i++) createQ(c, q++, null, "admin", "single");
+  }
+  async function saveData() {
+    const p = { action: "save", n1: +document.getElementById('adm_n1').value, n2: +document.getElementById('adm_n2').value, n3: +document.getElementById('adm_n3').value, n4: +document.getElementById('adm_n4').value, start: document.getElementById('adm_start').value, end: document.getElementById('adm_end').value, kod: document.getElementById('adm_kod').value, keys: adminKeys, cats: adminCats, channelId: document.getElementById('adm_channel').value, channelLink: document.getElementById('adm_link').value };
+    await fetch(SCRIPT_URL, {method:'POST', body: JSON.stringify(p)}); location.reload();
+  }
+  function calcRash(k){ fetch(SCRIPT_URL,{method:'POST', body:JSON.stringify({action:"calculate",kod:k})}).then(()=>alert("OK")); }
+  function deleteTest(k){ if(confirm("O'chirilsinmi?")) fetch(SCRIPT_URL,{method:'POST', body:JSON.stringify({action:"delete",kod:k})}).then(()=>location.reload()); }
+  function editTest(kod) {
+    const t = serverData.testList.find(x => x.kod === kod);
+    document.getElementById('adm_n1').value = t.n1; document.getElementById('adm_n2').value = t.n2;
+    document.getElementById('adm_n3').value = t.n3; document.getElementById('adm_n4').value = t.n4;
+    document.getElementById('adm_start').value = t.start.split('.')[0]; document.getElementById('adm_end').value = t.end.split('.')[0];
+    document.getElementById('adm_kod').value = t.kod; document.getElementById('adm_kod').disabled = true;
+    document.getElementById('adm_channel').value = t.channelId || ""; document.getElementById('adm_link').value = t.channelLink || "";
+    adminKeys = t.keys || {}; adminCats = t.cats || {}; document.getElementById('adminForm').classList.remove('hidden'); renderAdminKeys();
+  }
+  async function submitTest() { document.getElementById('subBtn').disabled = true; await fetch(SCRIPT_URL, {method:'POST', body: JSON.stringify({action:"submit", userId:userId, kod: activeTest.kod, answers:studentAns})}); tg.close(); }
+
+  load();
+</script>
+</body>
+</html>
