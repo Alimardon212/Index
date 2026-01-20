@@ -90,7 +90,7 @@
 
 <script>
   const tg = window.Telegram.WebApp; tg.ready(); tg.expand();
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby1vkoJJV9bKqkieuJzj04h432cKCDkQcPj0Ba5I4Rs7IqGs2ZILJMWP4Yd33Ump6c2/exec"; 
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwRxw9MeUZKgKA8fzJqEu4TDyKPtl5LznWs8waVR3M587mDrASU9pxk5-EKyobw9v6Y/exec"; 
   let userId = String(tg.initDataUnsafe.user?.id || "");
   let serverData = { testList: [], isAdmin: false, submittedTests: [] };
   let adminKeys = {}, adminCats = {}, studentAns = {}, activeTest = null;
@@ -131,11 +131,33 @@
 
   async function calculateRash(kod) {
     if(!confirm(kod + " testi uchun Rash modeli bo'yicha natijalarni hisoblashni xohlaysizmi?")) return;
+    
+    // Tugmani o'chirib turish
+    const loader = document.getElementById('loader');
+    loader.classList.remove('hidden');
+    loader.innerText = "📊 Hisoblanmoqda, kuting...";
+
     try {
-      await fetch(SCRIPT_URL, {method:'POST', body: JSON.stringify({action:"calculate", kod: kod})});
-      alert("✅ Hisoblandi! 'Final_Results' varag'ini tekshiring.");
-    } catch(e) { alert("Xatolik!"); }
-  }
+      const response = await fetch(SCRIPT_URL, {
+        method: 'POST', 
+        body: JSON.stringify({action: "calculate", kod: kod})
+      });
+      
+      const result = await response.text();
+      loader.classList.add('hidden');
+
+      if (result === "OK") {
+          alert("✅ Muvaffaqiyatli hisoblandi! 'Final_Results' varag'ini tekshiring.");
+      } else if (result.startsWith("ERROR:")) {
+          alert("❌ Server xatosi: " + result.replace("ERROR: ", ""));
+      } else {
+          alert("⚠️ Kutilmagan javob keldi. Jadvalni tekshirib ko'ring.");
+      }
+    } catch(e) { 
+      loader.classList.add('hidden');
+      alert("❌ Ulanishda xato yuz berdi!"); 
+    }
+}
 
   function checkGlobalStatus() {
     const now = new Date();
@@ -297,3 +319,4 @@
 </script>
 </body>
 </html>
+
