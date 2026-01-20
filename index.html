@@ -75,7 +75,7 @@
 
 <script>
   const tg = window.Telegram.WebApp; tg.ready(); tg.expand();
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxx2JHThr2CEpF5wCsCQAvP1-HqZxtfttBc1Tzgy9QA0nz4I3VeIDaZeEbmZ6H8z8Xw/exec"; 
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzReWd6jXWNZrhLUetUwpm-en86QSXJgPLV0WijB5t-mwpWk0DkiUBGkv8ueWNnZR_b/exec"; 
   let userId = String(tg.initDataUnsafe.user?.id || "");
   let serverData = { testList: [], isAdmin: false, submittedTests: [] };
   let adminKeys = {}, adminCats = {}, studentAns = {}, activeTest = null;
@@ -204,24 +204,49 @@
   async function accessTest() {
     const k = document.getElementById('userKod').value.trim();
     const t = serverData.testList.find(x => x.kod.toLowerCase() === k.toLowerCase());
+    
     if(!t) return alert("Kod xato!");
     if(serverData.submittedTests.includes(k)) return alert("Siz topshirib bo'lgansiz!");
-    
-    // A'zolikni tekshirish
+    if(new Date() < new Date(t.start)) return alert("Hali vaqt bor");
+
     const loader = document.getElementById('loader');
-    loader.classList.remove('hidden'); loader.innerText = "⌛ Tekshirilmoqda...";
+    loader.classList.remove('hidden'); 
+    loader.innerText = "⌛ To'lov tekshirilmoqda...";
     
-    const res = await fetch(`${SCRIPT_URL}?action=checkMembership&userId=${userId}&testKod=${k}`);
-    const check = await res.json();
-    loader.classList.add('hidden');
+    try {
+        const res = await fetch(`${SCRIPT_URL}?action=checkMembership&userId=${userId}&testKod=${k}`);
+        const check = await res.json();
+        loader.classList.add('hidden');
 
-    if (check.status === "not_member") {
+        // AGAR SERVERNAN "member" JAVOBI KELMASA - BLOKLAYMIZ
+        if (check.status !== "member") {
+            document.getElementById('loginForm').classList.add('hidden');
+            document.getElementById('statusBox').classList.add('hidden');
+            document.getElementById('paymentArea').classList.remove('hidden');
+            document.getElementById('joinBtn').onclick = () => tg.openTelegramLink(t.channelLink);
+            return;
+        }
+
+        // AGAR member BO'LSA - TESTNI OCHAMIZ
+        activeTest = t;
         document.getElementById('loginForm').classList.add('hidden');
-        document.getElementById('paymentArea').classList.remove('hidden');
-        document.getElementById('joinBtn').onclick = () => tg.openTelegramLink(t.channelLink);
-        return;
-    }
+        document.getElementById('statusBox').classList.add('hidden');
+        document.getElementById('adminArea')?.classList.add('hidden');
+        document.getElementById('testArea').classList.remove('hidden');
+        const cont = document.getElementById('studentQuestions');
+        cont.innerHTML = "";
+        let q = 1;
+        for(let i=0; i<parseInt(t.n1); i++) createQ(cont, q++, ['A','B','C','D'], "user", "mcq");
+        for(let i=0; i<parseInt(t.n2); i++) createQ(cont, q++, ['A','B','C','D','E','F'], "user", "mcq");
+        for(let i=0; i<parseInt(t.n3); i++) createQ(cont, q++, null, "user", "double");
+        for(let i=0; i<parseInt(t.n4); i++) createQ(cont, q++, null, "user", "single");
+        window.scrollTo(0,0);
 
+    } catch (err) {
+        loader.classList.add('hidden');
+        alert("Tarmoq xatosi! Iltimos, qaytadan urinib ko'ring.");
+    }
+  }
     activeTest = t;
     document.getElementById('loginForm').classList.add('hidden');
     document.getElementById('statusBox').classList.add('hidden');
@@ -257,3 +282,4 @@
 </script>
 </body>
 </html>
+
