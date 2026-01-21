@@ -81,7 +81,7 @@
 
 <script>
   const tg = window.Telegram.WebApp; tg.ready(); tg.expand();
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbztGBlMpoeQgo88FzToysLn8WBJzttXpCYghJg7PrraEyefRtG-1kjQjtlIPP7BdoWj/exec"; // <--- Google Script URL-ni bu yerga qo'ying
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyo8gAmQd3y-y36fVaVWQTJH6RQouoE2mrZQvGZwanbkEs0AFK6CRgUhMS5Pk9VLG2E/exec"; // <--- Google Script URL-ni bu yerga qo'ying
   let userId = String(tg.initDataUnsafe.user?.id || "");
   let serverData = { testList: [], isAdmin: false, submittedTests: [] };
   let adminKeys = {}, adminCats = {}, studentAns = {}, activeTest = null;
@@ -133,45 +133,34 @@
     if(serverData.submittedTests.includes(k)) return alert("Topshirib bo'lingan!");
 
     document.getElementById('loader').classList.remove('hidden');
-    document.getElementById('loader').innerText = "⌛ Tekshirilmoqda...";
-    
     try {
         const res = await fetch(`${SCRIPT_URL}?action=checkMembership&userId=${userId}&testKod=${k}`);
         const check = await res.json();
         document.getElementById('loader').classList.add('hidden');
 
         if (check.status !== "member") {
-            document.getElementById('loginForm').classList.add('hidden');
-            document.getElementById('statusBox').classList.add('hidden');
+            // AGAR XATOLIK BO'LSA - ALERT CHIQARAMIZ
+            if(check.error) {
+              alert("❌ Tekshiruvda xatolik:\n" + check.error);
+            }
             document.getElementById('paymentArea').classList.remove('hidden');
+            document.getElementById('loginForm').classList.add('hidden');
             return;
         }
 
+        // AGAR member BO'LSA - TESTNI OCHAMIZ
         activeTest = t;
         document.getElementById('loginForm').classList.add('hidden');
         document.getElementById('statusBox').classList.add('hidden');
         document.getElementById('testArea').classList.remove('hidden');
-        
-        const cont = document.getElementById('studentQuestions');
-        cont.innerHTML = "";
-        
-        // JAVOBLAR OYNASI GENERATSIYASI (RAQAMGA AYLANTIRILDI)
+        const cont = document.getElementById('studentQuestions'); cont.innerHTML = "";
         let q = 1;
-        const n1 = Number(t.n1) || 0;
-        const n2 = Number(t.n2) || 0;
-        const n3 = Number(t.n3) || 0;
-        const n4 = Number(t.n4) || 0;
-
-        for(let i=0; i<n1; i++) createQ(cont, q++, ['A','B','C','D'], "user", "mcq");
-        for(let i=0; i<n2; i++) createQ(cont, q++, ['A','B','C','D','E','F'], "user", "mcq");
-        for(let i=0; i<n3; i++) createQ(cont, q++, null, "user", "double");
-        for(let i=0; i<n4; i++) createQ(cont, q++, null, "user", "single");
-        
+        for(let i=0; i<parseInt(t.n1); i++) createQ(cont, q++, ['A','B','C','D'], "user", "mcq");
+        for(let i=0; i<parseInt(t.n2); i++) createQ(cont, q++, ['A','B','C','D','E','F'], "user", "mcq");
+        for(let i=0; i<parseInt(t.n3); i++) createQ(cont, q++, null, "user", "double");
+        for(let i=0; i<parseInt(t.n4); i++) createQ(cont, q++, null, "user", "single");
         window.scrollTo(0,0);
-    } catch(e) { 
-        document.getElementById('loader').classList.add('hidden');
-        alert("Xatolik: " + e.message); 
-    }
+    } catch(e) { alert("Xato: " + e.message); }
   }
 
   function createQ(p, n, opts, mode, type) {
@@ -279,5 +268,6 @@
 </script>
 </body>
 </html>
+
 
 
